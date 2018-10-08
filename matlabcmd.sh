@@ -52,4 +52,4 @@ echo "Command: $1"
 echo "---------------------------------------------------"
 echo ""
 
-$matlab -singleCompThread -nodisplay -nosplash -r  "try $1; exit; catch exit; end"
+srun $matlab -nodisplay -nosplash -r  "try $1; exit; catch exit; end"

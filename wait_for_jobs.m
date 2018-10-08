@@ -1,0 +1,82 @@
+function jobs = wait_for_jobs(jobs, stopOnError)
+
+if isnumeric(jobs)
+    jobIds = jobs;
+    clear jobs
+    jobs(1,length(jobIds)) = MatlabJob;
+    for iJob = 1:length(jobs)
+        jobs(iJob).id = jobIds(iJob);
+        jobs(iJob).sacct_query()
+    end           
+end
+
+nJobs = length(jobs);
+
+if nargin < 2
+    stopOnError = true;
+end
+
+fprintf('Waiting for jobs to complete\n')
+
+tStart = tic;
+breakOut = false;
+
+printString = sprintf('PENDING/RUNNING jobs: %6d\nElapsed time: %6.1f min\n', ...
+    sum(~[jobs.isComplete]), toc(tStart)/60);
+fprintf(printString)
+
+
+while any(~[jobs.isFinalized]) && ~breakOut
+    pause(5)
+    
+    [ids, ~] = get_running_jobs();
+    
+    fprintf(repmat('\b',1,length(printString)));
+    printString = sprintf('PENDING/RUNNING jobs: %6d\nElapsed time: %6.1f min\n', ...
+        sum(~[jobs.isComplete]), toc(tStart)/60);
+    fprintf(printString)
+
+    notRunning = ~ismember([jobs.id], ids);
+    isRunning = ismember([jobs.id], ids);
+    
+    if any(isRunning)
+        [jobs(isRunning).isComplete] = deal(false);
+    end
+    if any(~isRunning)
+        [jobs(~isRunning).isComplete] = deal(true);
+    end
+    
+   
+    iCompleteButNotFinalized = find(notRunning & ~[jobs.isFinalized]);
+    for iJob = 1:length(iCompleteButNotFinalized)
+        jJob = iCompleteButNotFinalized(iJob);
+        jobid = jobs(jJob).id;
+        jobs(jJob).isFinalized = true;
+        jobs(jJob).sacct_query()
+        
+        switch jobs(jJob).state
+            case 'COMPLETED'             
+                
+                
+            case 'RUNNING'
+                jobs(jJob).isComplete = false;
+                jobs(jJob).isFinalized = false;
+            case {'FAILED','CANCELLED','TIMEOUT'}
+                fprintf('\n')
+                [~, errorTail] = system(['tail -n 5 ' jobs(jJob).logFile]);
+                warning('An error occured in job %u (id %u).\n%s\nFull log can be viewed with this command\n less %s', ...
+                    jJob, jobid, errorTail, jobs(jJob).logFile)
+                fprintf(repmat(' ', 1,length(2*printString)));
+                fprintf('\n')
+                jobs(jJob).deleteLogfile = false;
+                if stopOnError
+                    breakOut = true;
+                    break
+                end
+            otherwise
+                jobs(jJob).isComplete = false;
+                jobs(jJob).isFinalized = false;
+        end
+        pause(0.001)
+    end           
+end

@@ -1,4 +1,4 @@
-function out = slurmfun(func, inputArguments, varargin)
+function [out, jobs] = slurmfun(func, inputArguments, varargin)
 % SLURMFUN - Apply a function to each element of a cell array in parallel
 % using the SLURM queueing system.
 %
@@ -28,33 +28,35 @@ function out = slurmfun(func, inputArguments, varargin)
 %                     /mnt/hpx/slurm/schmiedtj/schmiedtj_20170823-125121
 %   'deleteFiles'   : boolean flag for deletion of input, output and log
 %                     files after completion of all jobs. Default is true.
-%   'useUserPath'   : boolean flag flag whether the MATLAB path of the user
+%   'useUserPath'   : boolean flag whether the MATLAB path of the user
 %                     should be used in job. Default is true.
+%   'waitForReturn' : boolean flag whether MATLAB should wait for the jobs
+%                     to finish. Default is true.
 %   'waitForToolboxes' : cell array of toolbox names to wait for. Default
-%   is {}. Avilable toolboxes are 
+%   is {}. Avilable toolboxes are
 %       {'statistics_toolbox', 'signal_toolbox', 'image_toolbox', ...
 %        'curve_fitting_toolbox', 'GADS_toolbox', 'optimization_toolbox'}
-% 
-% 
+%
+%
 % OUTPUT
 % ------
 %   argout : cell array of output argument
-% 
-% 
+%   job    : array of SLURM Jobs that were submitted
+%
 % EXAMPLE
 % -------
 % This example will spawn 50 jobs that pause for 50-70s.
-% 
+%
 % nJobs = 50;
-% inputArgs = num2cell(randi(20,nJobs,1)+50); 
+% inputArgs = num2cell(randi(20,nJobs,1)+50);
 % out = slurmfun(@pause, inputArgs, ...
 %     'partition', '8GBS', ...
 %     'stopOnError', false);
-% 
-% 
-% 
+%
+%
+%
 % See also CELLFUN
-% 
+%
 
 % TODO
 %  - stacking
@@ -65,7 +67,7 @@ if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3')
     error('MATLAB:slurmfun:MATLAB versions older than R2014a are not supported')
 end
 
-% empty the LD_PRELOAD environment variable 
+% empty the LD_PRELOAD environment variable
 % vglrun libraries don't have SUID bit, sbatch does. See
 % ihttps://virtualgl.org/vgldoc/2_2/#hd0012
 
@@ -107,6 +109,9 @@ parser.addParameter('slurmWorkingDirectory', ...
 % stop on error
 parser.addParameter('stopOnError', true, @islogical);
 
+% wait for jobs to complete
+parser.addParameter('waitForReturn', true, @islogical);
+
 % delete files
 parser.addParameter('deleteFiles', true, @islogical);
 
@@ -128,7 +133,9 @@ if parser.Results.useUserPath
         'If useUserPath is true, matlabBinary must match current MATLAB')
 end
 
+
 nJobs = length(inputArguments);
+jobs(nJobs) = MatlabJob;
 
 %% Working directory
 slurmWDCreated = false;
@@ -158,19 +165,20 @@ for iJob = 1:nJobs
     
     baseFile = fullfile(parser.Results.slurmWorkingDirectory, ...
         sprintf('%s_%s_%05u', account, submissionTime, iJob));
-    inputFiles{iJob} = [baseFile '_in.mat'];
-    outputFiles{iJob} = [baseFile '_out.mat'];
-    logFiles{iJob} = [baseFile '.log'];
+    
+    jobs(iJob).inputFile = [baseFile '_in.mat'];
+    jobs(iJob).outputFile = [baseFile '_out.mat'];
+    jobs(iJob).logFile = [baseFile '.log'];
     
     
     inputArgs = inputArguments(iJob);
-    outputFile = outputFiles{iJob};
+    outputFile = jobs(iJob).outputFile;
     inputArgsSize = whos('inputArgs');
     if inputArgsSize.bytes > 2*1024*1024*1024
         error(['Size of the input arguments must not exceed 2 GB. ', ...
             'For large data please pass a filename instead of the data'])
     end
-    save(inputFiles{iJob}, 'func', 'inputArgs', 'userPath', 'outputFile', '-v6')
+    save(jobs(iJob).inputFile, 'func', 'inputArgs', 'userPath', 'outputFile', '-v6')
 end
 %% Submit jobs
 
@@ -186,17 +194,17 @@ if ~isempty(parser.Results.waitForToolboxes)
         toolboxName = parser.Results.waitForToolboxes{iToolbox};
         licenseCheckoutCmd = [licenseCheckoutCmd, ...
             sprintf([   'licenseAvailable = false;', ...
-                        'while ~licenseAvailable;', ...
-                            '[licenseAvailable, ~] = license(''checkout'',''%s'');', ...
-                            'pause(15);', ...
-                        'end;'], ...
-                        toolboxName);];
+            'while ~licenseAvailable;', ...
+            '[licenseAvailable, ~] = license(''checkout'',''%s'');', ...
+            'pause(15);', ...
+            'end;'], ...
+            toolboxName);];
     end
 end
 
 if parser.Results.useUserPath
     userPathCmd = 'fprintf(''Loading userpath\n''), path(userPath);';
-else 
+else
     userPathCmd = '';
 end
 fexecCmd = 'try fexec(func, inputArgs, outputFile); catch exit; end';
@@ -204,14 +212,14 @@ fexecCmd = 'try fexec(func, inputArgs, outputFile); catch exit; end';
 
 for iJob = 1:nJobs
     cmd = '';
-    loadCmd = sprintf('load(''%s'');', inputFiles{iJob});    
-
-    cmd = [licenseCheckoutCmd, loadCmd, userPathCmd fexecCmd];
-    submittedJobs(iJob) = Job(cmd, ...
-        parser.Results.partition, logFiles{iJob}, parser.Results.matlabCmd);    
-    submittedJobs(iJob).deleteLogfile = parser.Results.deleteFiles;
+    loadCmd = sprintf('load(''%s'');', jobs(iJob).inputFile);
     
-    pause(0.001)    
+    cmd = [licenseCheckoutCmd, loadCmd, userPathCmd, fexecCmd];
+    jobs(iJob).run_cmd(cmd, ...
+        parser.Results.partition, jobs(iJob).logFile, parser.Results.matlabCmd);
+    jobs(iJob).deleteLogfile = parser.Results.deleteFiles;
+    
+    pause(0.001)
     
 end
 tSubmission = toc;
@@ -224,96 +232,32 @@ if parser.Results.deleteFiles
 end
 
 %% Wait for jobs
-fprintf('Waiting for jobs to complete\n')
-% [ids, state] = get_running_jobs();
-tStart = tic;
-out = cell(1,nJobs);
-breakOut = false;
-
-printString = sprintf('PENDING/RUNNING jobs: %6d\nElapsed time: %6.1f min\n', ...
-    sum([submittedJobs.isRunning]), toc(tStart));
-fprintf(printString)
-
-
-while any([submittedJobs.isRunning]) && ~breakOut
-    pause(5)
-    
-    [ids, ~] = get_running_jobs();
-    
-    fprintf(repmat('\b',1,length(printString)));
-    printString = sprintf('PENDING/RUNNING jobs: %6d\nElapsed time: %6.1f min', ...
-        sum([submittedJobs.isRunning]), toc(tStart)/60);
-    fprintf(printString)
-    
-    
-    
-    
-    notRunning = ~ismember([submittedJobs.id], ids);
-    isRunning = ismember([submittedJobs.id], ids);
-    
-    if any(isRunning)
-        [submittedJobs(isRunning).isRunning] = deal(true);
-    end
-    if any(~isRunning)
-        [submittedJobs(~isRunning).isRunning] = deal(false);
-    end
-    
-    notFinalized = ~[submittedJobs.finalized];
-    iCompleteButNotFinalized = find(notRunning & notFinalized);
-    for iJob = 1:length(iCompleteButNotFinalized)
-        jJob = iCompleteButNotFinalized(iJob);
-        jobid = submittedJobs(jJob).id;
-        submittedJobs(jJob).finalized = true;
-        submittedJobs(jJob).state = get_final_status(jobid);
-        
-        switch submittedJobs(jJob).state
-            case 'COMPLETED'
-                
-                % load output file
-                tmpOut = load(outputFiles{iCompleteButNotFinalized(iJob)});
-                out{iCompleteButNotFinalized(iJob)} = tmpOut.out;
-                
-                if isa(tmpOut.out, 'MException')
-                    fprintf('\n')
-                    warning('An error occured in job %u:%u. See %s', ...
-                        jJob, jobid, submittedJobs(jJob).logFile)
-                    disp(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
-                    submittedJobs(jJob).deleteLogfile = false;
-                   
-                    fprintf(repmat(' ', 1,length(2*printString)));
-                    fprintf('\n')
-                    if parser.Results.stopOnError
-                        breakOut = true;
-                        break
-                    end
-                   
-                end
-                
-            case 'RUNNING'
-                submittedJobs(jJob).isRunning = true;
-                submittedJobs(jJob).finalized = false;
-            case {'FAILED','CANCELLED','TIMEOUT'}
-                fprintf('\n')
-                warning('An error occured in job %u:%u. See %s', ...
-                    jJob, jobid, submittedJobs(jJob).logFile)
-                fprintf(repmat(' ', 1,length(2*printString)));
-                fprintf('\n')
-                submittedJobs(jJob).deleteLogfile = false;
-                if parser.Results.stopOnError
-                    breakOut = true;
-                    break
-                end
-            otherwise
-                submittedJobs(jJob).isRunning = true;
-                submittedJobs(jJob).finalized = false;
-        end
-        pause(0.001)
-    end
-    
-    
-    
+if ~parser.Results.waitForReturn
+    out = jobs;
+    return
 end
+jobs = wait_for_jobs(jobs, parser.Results.stopOnError);
 
+
+%% Retreive results
+out = cell(1,nJobs);
+
+for iJob = 1:nJobs
+    if strcmp(jobs(iJob).state, 'COMPLETED')
+        
+        % load output files
+        tmpOut = load(jobs(iJob).outputFile);
+        out{iJob} = tmpOut.out;
+        
+        if isa(tmpOut.out, 'MException')
+            
+            warning('A MATLAB error occured in job %u:%u. See %s', ...
+                iJob, jobs(iJob).id, jobs(iJob).logFile)
+            disp(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
+            jobs(iJob).deleteLogfile = false;
+        end
+    end
+end
 iCompleted = ~cellfun(@isempty, out);
 iMatlabError = cellfun(@(x) isa(x, 'MException'), out(iCompleted));
 
@@ -321,7 +265,7 @@ iMatlabError = cellfun(@(x) isa(x, 'MException'), out(iCompleted));
 fprintf('\n')
 fprintf('%u jobs completed without errors, %u completed with errors, %u failed/aborted.\n', ...
     sum(~iMatlabError), sum(iMatlabError), sum(~iCompleted));
-fprintf('Elapsed time: %g s\n', toc(tStart));
+% fprintf('Elapsed time: %g s\n', toc(tStart));
 
 if sum(iMatlabError) > 0
     fprintf('Log files of failed jobs can be found in %s\n', ...
