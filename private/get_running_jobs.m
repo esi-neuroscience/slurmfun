@@ -7,6 +7,9 @@ account = getenv('USER');
 squeueCmd = sprintf('squeue -A %s -h -o "%%A %%T"', account);
 [result, allJobs] = system(['/bin/bash -c "' squeueCmd '"']);
 assert(result == 0, 'squeue query failed');
+[~, remainder] = system('');
+allJobs = [allJobs remainder];
+
 if isempty(allJobs)
     id = [];
     state = [];
