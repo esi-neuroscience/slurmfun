@@ -1,4 +1,20 @@
 function jobs = wait_for_jobs(jobs, stopOnError)
+% WAIT_FOR_JOBS - Wait for completion of SLURM JOBS
+% 
+%       jobs = wait_for_jobs(jobs, stopOnError)
+% 
+% INPUT
+% -----
+%        jobs : array of job ids or MatlabJob array as returned by slurmfun
+% stopOnError : boolean flag whether to interrupt if a job fails. Default
+%               is true.
+%   
+% 
+% OUTPUT
+% ------
+% 
+%        jobs : MatlabJob array of completed jobs
+% 
 
 if isnumeric(jobs)
     jobIds = jobs;

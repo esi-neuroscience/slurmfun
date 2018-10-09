@@ -4,7 +4,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % USAGE
 % -----
-%   argout = slurmfun(functionName, inputArguments, ...
+%   argout = slurmfun(functionName, inputArguments1, inputArguments2, ...)
 %
 % INPUT
 % -----
@@ -55,13 +55,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 %
 %
-% See also CELLFUN
+% See also CELLFUN, wait_for_jobs
 %
-
-% TODO
-%  - stacking
-%  - variable number of input/output arguments
-%  - memory profiling
 
 if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3')
     error('MATLAB:slurmfun:MATLAB versions older than R2014a are not supported')
@@ -267,6 +262,8 @@ for iJob = 1:nJobs
         end
     end
 end
+
+
 iCompleted = ~cellfun(@isempty, out);
 iMatlabError = cellfun(@(x) isa(x, 'MException'), out(iCompleted));
 
