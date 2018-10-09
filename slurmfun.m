@@ -1,4 +1,4 @@
-function [out, jobs] = slurmfun(func, inputArguments, varargin)
+function [out, jobs] = slurmfun(func, varargin)
 % SLURMFUN - Apply a function to each element of a cell array in parallel
 % using the SLURM queueing system.
 %
@@ -31,7 +31,7 @@ function [out, jobs] = slurmfun(func, inputArguments, varargin)
 %   'useUserPath'   : boolean flag whether the MATLAB path of the user
 %                     should be used in job. Default is true.
 %   'waitForReturn' : boolean flag whether MATLAB should wait for the jobs
-%                     to finish. Default is true.
+%                     to finish before returning. Default is true.
 %   'waitForToolboxes' : cell array of toolbox names to wait for. Default
 %   is {}. Avilable toolboxes are
 %       {'statistics_toolbox', 'signal_toolbox', 'image_toolbox', ...
@@ -40,7 +40,7 @@ function [out, jobs] = slurmfun(func, inputArguments, varargin)
 %
 % OUTPUT
 % ------
-%   argout : cell array of output argument
+%   argout : cell array of output arguments
 %   job    : array of SLURM Jobs that were submitted
 %
 % EXAMPLE
@@ -85,9 +85,6 @@ parser = inputParser;
 % function
 parser.addRequired('func', @(x) isa(x, 'function_handle')||ischar(x));
 
-% input arguments
-%parser.addRequired('inputArguments', @iscell);
-assert(iscell(inputArguments), 'Input arguments must a cell array')
 
 % partitions
 [availablePartitions,defaultPartition] = get_available_partitions();
@@ -120,6 +117,17 @@ availableToolboxes = {'statistics_toolbox', 'signal_toolbox', 'image_toolbox', .
     'curve_fitting_toolbox', 'GADS_toolbox', 'optimization_toolbox'};
 parser.addParameter('waitForToolboxes', {}, @(x) all(ismember(x, availableToolboxes)));
 
+% extract input arguments from varargin
+iFirstParameter = find(cellfun(@(x) ~iscell(x), varargin), 1);
+inputArguments = varargin(1:iFirstParameter-1);
+
+varargin = varargin(iFirstParameter:end);
+% input arguments
+%parser.addRequired('inputArguments', @iscell);
+% assert(cellfuniscell(inputArguments), 'Input arguments must a cell array')
+
+
+
 % parse inputs
 parser.parse(func, varargin{:})
 
@@ -134,7 +142,8 @@ if parser.Results.useUserPath
 end
 
 
-nJobs = length(inputArguments);
+nArgs = length(inputArguments);
+nJobs = length(inputArguments{1});
 jobs(nJobs) = MatlabJob;
 
 %% Working directory
@@ -171,7 +180,7 @@ for iJob = 1:nJobs
     jobs(iJob).logFile = [baseFile '.log'];
     
     
-    inputArgs = inputArguments(iJob);
+    inputArgs = cellfun(@(x) x{iJob},  inputArguments, 'UniformOutput', false);
     outputFile = jobs(iJob).outputFile;
     inputArgsSize = whos('inputArgs');
     if inputArgsSize.bytes > 2*1024*1024*1024
@@ -217,7 +226,7 @@ for iJob = 1:nJobs
     cmd = [licenseCheckoutCmd, loadCmd, userPathCmd, fexecCmd];
     jobs(iJob).run_cmd(cmd, ...
         parser.Results.partition, jobs(iJob).logFile, parser.Results.matlabCmd);
-    jobs(iJob).deleteLogfile = parser.Results.deleteFiles;
+    jobs(iJob).deleteFiles = parser.Results.deleteFiles;
     
     pause(0.001)
     
@@ -226,8 +235,8 @@ tSubmission = toc;
 fprintf('Submission of %u jobs took %g s\n', nJobs, tSubmission)
 
 % Setup cleanup after completion/failure
-if parser.Results.deleteFiles
-    cleanup = onCleanup(@() delete_if_exist([inputFiles, outputFiles], ...
+if parser.Results.deleteFiles && parser.Results.waitForReturn
+    cleanup = onCleanup(@() delete_if_exist([{jobs.inputFile}, {jobs.outputFile}], ...
         parser.Results.slurmWorkingDirectory, slurmWDCreated, LD_PRELOAD));
 end
 
@@ -253,8 +262,8 @@ for iJob = 1:nJobs
             
             warning('A MATLAB error occured in job %u:%u. See %s', ...
                 iJob, jobs(iJob).id, jobs(iJob).logFile)
-            disp(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
-            jobs(iJob).deleteLogfile = false;
+            warning(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
+            jobs(iJob).deleteFiles = false;
         end
     end
 end

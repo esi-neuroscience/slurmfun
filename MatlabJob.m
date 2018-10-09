@@ -2,7 +2,7 @@ classdef MatlabJob < handle
     
     properties
         id % SLURM job id                
-        deleteLogfile = true
+        deleteFiles = true
         state
         memoryUsed
         readFromDisk
@@ -34,7 +34,7 @@ classdef MatlabJob < handle
                 obj.run_cmd(cmd, varargin{:})
             elseif isnumeric(cmd) && numel(cmd) == 1
                 obj.id = cmd;
-                obj.sacct_query();
+                obj.update_state();
             end
         end
         
@@ -52,13 +52,13 @@ classdef MatlabJob < handle
             assert(result == 0 || isempty(obj.id), 'Submission failed: %s\n', obj.id)
             obj.id = uint32(sscanf(obj.id,'%u'));
             obj.isComplete = false;
-            
+            obj.account = obj.userAccount;
             obj.logFile = logFile;
         end
             
         
-        function sacct_query(obj)
-            assert(~isempty(obj.id), 'Undefined job id')
+        function update_state(obj)
+            assert(~isempty([obj.id]), 'Undefined job id')
             jobInfo = sacct_query(obj.id);
             obj.duration = jobInfo.Elapsed;
             obj.partition = jobInfo.Partition;
@@ -75,19 +75,23 @@ classdef MatlabJob < handle
             
         end
         
-        function clean(obj)
+        function delete(obj)
             if ~strcmp(obj.userAccount, obj.account)
                 warning('Not cancelling job %d as it belongs to %s', obj.id, obj.account)
                 return
             end
-            if ismember(obj.state, {' RUNNING', 'PENDING', 'RESIZING', 'REQUEUED'})
+            if ~obj.isComplete
                 cmd = sprintf('scancel %u', obj.id);
                 result = system(cmd);
                 assert(result == 0, 'Could not cancel job %u', obj.id)
-            end
+            end                                                
             
-            if obj.deleteLogfile
+            if obj.deleteFiles
+                warning('off', 'MATLAB:DELETE:FileNotFound')
                 delete(obj.logFile)
+                delete(obj.inputFile)
+                delete(obj.outputFile)
+                warning('on', 'MATLAB:DELETE:FileNotFound')
             end
         end
         

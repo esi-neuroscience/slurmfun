@@ -6,14 +6,14 @@ if isnumeric(jobs)
     jobs(1,length(jobIds)) = MatlabJob;
     for iJob = 1:length(jobs)
         jobs(iJob).id = jobIds(iJob);
-        jobs(iJob).sacct_query()
+        jobs(iJob).update_state()
     end           
 end
 
 nJobs = length(jobs);
 
 if nargin < 2
-    stopOnError = true;
+    stopOnError = false;
 end
 
 fprintf('Waiting for jobs to complete\n')
@@ -52,7 +52,7 @@ while any(~[jobs.isFinalized]) && ~breakOut
         jJob = iCompleteButNotFinalized(iJob);
         jobid = jobs(jJob).id;
         jobs(jJob).isFinalized = true;
-        jobs(jJob).sacct_query()
+        jobs(jJob).update_state()
         
         switch jobs(jJob).state
             case 'COMPLETED'             
@@ -66,9 +66,9 @@ while any(~[jobs.isFinalized]) && ~breakOut
                 [~, errorTail] = system(['tail -n 5 ' jobs(jJob).logFile]);
                 warning('An error occured in job %u (id %u).\n%s\nFull log can be viewed with this command\n less %s', ...
                     jJob, jobid, errorTail, jobs(jJob).logFile)
-                fprintf(repmat(' ', 1,length(2*printString)));
+                fprintf(repmat(' ', 1,length(printString)));
                 fprintf('\n')
-                jobs(jJob).deleteLogfile = false;
+                jobs(jJob).deleteFiles = false;
                 if stopOnError
                     breakOut = true;
                     break
