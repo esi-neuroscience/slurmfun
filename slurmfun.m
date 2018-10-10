@@ -231,7 +231,7 @@ for iJob = 1:nJobs
     
 end
 
-fprintf('Submission of %u jobs took %g s\n', nJobs, toc(tSubmission))
+fprintf('Submission of %u jobs took %.0f s\n', nJobs, toc(tSubmission))
 
 % Setup cleanup after completion/failure
 if parser.Results.deleteFiles && parser.Results.waitForReturn
