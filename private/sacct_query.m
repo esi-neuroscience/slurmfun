@@ -10,6 +10,7 @@ fields = {...
     'CPUTime', ... 
     'ExitCode', ...
     'Elapsed', ... 
+    'ElapsedRaw', ...
     'End', ...
     'GID', ...
     'Group', ...
@@ -23,17 +24,17 @@ fields = {...
     'QOS', ...
     'ReqMem', ...
     'ReqTres', ...
-    'Start', ...
-    'State', ...
+    'Start', ...    
     'Timelimit', ...
     'UID', ...
-    'User' ...        
+    'User' ...  
+    'State', ...
     };
  
 outputFormat = sprintf('%s,', fields{:});
 outputFormat(end) = '';
 
-cmd = sprintf('sacct -o %s -j %d -P -n', outputFormat, jobId);
+cmd = [sprintf('sacct -o %s --noconvert -P -n -j ', outputFormat) sprintf('%d.0,', jobId)];
 
 [status, output] = system(cmd);
 [~, remainder] = system('');
@@ -42,20 +43,23 @@ assert(status == 0, 'Could not retreive job status of job %d', jobId)
 
 
 % parse output
-output = splitlines(output);
-jobOutput = output{1};
-jobOutput = strsplit(strrep(jobOutput, newline, ''), '|', 'CollapseDelimiters', false);
-jobInfo = cell2struct(jobOutput, fields,2);
 
-%% get memory consumption if complete
-if length(output) > 2
-    batchOutput = output{end-1};
-    batchOutput = strsplit(strrep(batchOutput, newline, ''), '|', 'CollapseDelimiters', false);
-    batchOutput = cell2struct(batchOutput, fields,2);
-    jobInfo.MaxRSS = batchOutput.MaxRSS;
-    jobInfo.MaxVMSize = batchOutput.MaxVMSize;
-    jobInfo.MaxDiskRead = batchOutput.MaxDiskRead;
-    jobInfo.MaxDiskWrite = batchOutput.MaxDiskWrite;
+output = splitlines(output);
+for iJob = 1:length(jobId)
+    jobOutput = output{iJob};
+    jobOutput = strsplit(strrep(jobOutput, newline, ''), '|', 'CollapseDelimiters', false);
+    jobInfo(iJob) = cell2struct(jobOutput, fields,2);
 end
+
+% %% get memory consumption if complete
+% if length(output) > 2
+%     batchOutput = output{end-1};
+%     batchOutput = strsplit(strrep(batchOutput, newline, ''), '|', 'CollapseDelimiters', false);
+%     batchOutput = cell2struct(batchOutput, fields,2);
+%     jobInfo.MaxRSS = batchOutput.MaxRSS;
+%     jobInfo.MaxVMSize = batchOutput.MaxVMSize;
+%     jobInfo.MaxDiskRead = batchOutput.MaxDiskRead;
+%     jobInfo.MaxDiskWrite = batchOutput.MaxDiskWrite;
+% end
 
 
