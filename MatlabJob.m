@@ -60,7 +60,7 @@ classdef MatlabJob < handle
         function update_state(obj)
             assert(~isempty([obj.id]), 'Undefined job id')
             jobInfo = sacct_query(obj.id);
-            obj.duration = jobInfo.Elapsed;
+            obj.duration = str2double(jobInfo.ElapsedRaw);
             obj.partition = jobInfo.Partition;
             obj.state = jobInfo.State;
             obj.memoryUsed = jobInfo.MaxRSS;
