@@ -4,7 +4,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % USAGE
 % -----
-%   argout = slurmfun(functionName, inputArguments1, inputArguments2, ...)
+%   [out, {jobInfo} = slurmfun(functionName, inputArguments1, inputArguments2, ...)
 %
 % INPUT
 % -----
@@ -31,7 +31,10 @@ function [out, jobs] = slurmfun(func, varargin)
 %   'useUserPath'   : boolean flag whether the MATLAB path of the user
 %                     should be used in job. Default is true.
 %   'waitForReturn' : boolean flag whether MATLAB should wait for the jobs
-%                     to finish before returning. Default is true.
+%                     to finish before returning. Default is true. If
+%                     false, the out argument is an ObjectArray of
+%                     MatlabJob elements. Use the wait_for_jobs function to
+%                     wait until completion.
 %   'waitForToolboxes' : cell array of toolbox names to wait for. Default
 %   is {}. Avilable toolboxes are
 %       {'statistics_toolbox', 'signal_toolbox', 'image_toolbox', ...
@@ -40,8 +43,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % OUTPUT
 % ------
-%   argout : cell array of output arguments
-%   job    : array of SLURM Jobs that were submitted
+%   argout : cell array of output arguments returned by @functionName
+%   jobInfo: array of SLURM Jobs that were submitted
 %
 % EXAMPLE
 % -------
@@ -188,7 +191,8 @@ end
 
 fprintf('Submitting %u jobs into %s at %s\n', ...
     nJobs, parser.Results.partition, datestr(now))
-tic
+
+tSubmission = tic;
 
 
 licenseCheckoutCmd = '';
@@ -226,8 +230,8 @@ for iJob = 1:nJobs
     pause(0.001)
     
 end
-tSubmission = toc;
-fprintf('Submission of %u jobs took %g s\n', nJobs, tSubmission)
+
+fprintf('Submission of %u jobs took %g s\n', nJobs, toc(tSubmission))
 
 % Setup cleanup after completion/failure
 if parser.Results.deleteFiles && parser.Results.waitForReturn
@@ -245,7 +249,7 @@ jobs = wait_for_jobs(jobs, parser.Results.stopOnError);
 
 %% Retreive results
 out = cell(1,nJobs);
-
+fprintf('Retreiving job results\n')
 for iJob = 1:nJobs
     if strcmp(jobs(iJob).state, 'COMPLETED')
         
@@ -254,9 +258,8 @@ for iJob = 1:nJobs
         out{iJob} = tmpOut.out;
         
         if isa(tmpOut.out, 'MException')
-            
-            warning('A MATLAB error occured in job %u:%u. See %s', ...
-                iJob, jobs(iJob).id, jobs(iJob).logFile)
+            warning('A MATLAB error occured in job %u (id %u).\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
+                    iJob, jobs(iJob).id, jobs(iJob).logFile, jobs(iJob).logFile)
             warning(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
             jobs(iJob).deleteFiles = false;
         end
@@ -271,7 +274,25 @@ iMatlabError = cellfun(@(x) isa(x, 'MException'), out(iCompleted));
 fprintf('\n')
 fprintf('%u jobs completed without errors, %u completed with errors, %u failed/aborted.\n', ...
     sum(~iMatlabError), sum(iMatlabError), sum(~iCompleted));
-% fprintf('Elapsed time: %g s\n', toc(tStart));
+
+
+memUsed = cellfun(@(x) str2double(x(1:end-1))/1024/1024, {jobs.memoryUsed}); % GB
+duration = [jobs.duration]/60; % s
+readData = cellfun(@(x) str2double(x(1:end-1))/1024, {jobs.readFromDisk}); % GB
+writtenData = cellfun(@(x) str2double(x(1:end-1))/1024, {jobs.wroteToDisk}); % GB
+
+report_data = @(name,unit,data) fprintf('%s: %.1f+-%.1f %s', ...
+    name, mean(data), std(data), unit);
+report_data('MEMORY', 'GB', memUsed)
+fprintf(' | ')
+report_data('JOB DURATION', 'min', duration)
+fprintf(' | ')
+report_data('READ', 'GB', readData)
+fprintf(' | ')
+report_data('WRITTEN', 'GB', writtenData)
+fprintf('\n')
+fprintf('Total time: %g min (%.1f x faster than sequential computation)\n', ...
+    toc(tSubmission)/60, sum([jobs.duration])/toc(tSubmission));
 
 if sum(iMatlabError) > 0
     fprintf('Log files of failed jobs can be found in %s\n', ...
@@ -283,6 +304,8 @@ if nargout == 0
 end
 
 end
+
+
 
 function delete_if_exist(delFiles, delFolder, folderFlag, LD_PRELOAD)
 fprintf('Deleting temporary input/output files from %s...\n', delFolder)
