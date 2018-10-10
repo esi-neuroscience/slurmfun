@@ -44,10 +44,10 @@ assert(status == 0, 'Could not retreive job status of job %d', jobId)
 
 % parse output
 
-output = splitlines(output);
+output = strsplit(output, char(10));
 for iJob = 1:length(jobId)
     jobOutput = output{iJob};
-    jobOutput = strsplit(strrep(jobOutput, newline, ''), '|', 'CollapseDelimiters', false);
+    jobOutput = strsplit(strrep(jobOutput, char(10), ''), '|', 'CollapseDelimiters', false);
     jobInfo(iJob) = cell2struct(jobOutput, fields,2);
 end
 
