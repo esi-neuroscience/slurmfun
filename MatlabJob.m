@@ -76,11 +76,11 @@ classdef MatlabJob < handle
         end
         
         function delete(obj)
-            if ~strcmp(obj.userAccount, obj.account)
+            if ~strcmp(obj.userAccount, obj.account) && ~isempty(obj.id)
                 warning('Not cancelling job %d as it belongs to %s', obj.id, obj.account)
                 return
             end
-            if ~obj.isComplete
+            if ~obj.isComplete && ~isempty(obj.id)
                 cmd = sprintf('scancel %u', obj.id);
                 result = system(cmd);
                 assert(result == 0, 'Could not cancel job %u', obj.id)
