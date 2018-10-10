@@ -43,7 +43,7 @@ fprintf(printString)
 
 
 while any(~[jobs.isFinalized]) && ~breakOut
-    pause(5)
+    pause(1)
     
     [ids, ~] = get_running_jobs();
     
@@ -63,14 +63,33 @@ while any(~[jobs.isFinalized]) && ~breakOut
     end
     
    
-    iCompleteButNotFinalized = find(notRunning & ~[jobs.isFinalized]);
+    iCompleteButNotFinalized = find(notRunning & ~[jobs.isFinalized]);        
+    
+    if isempty(iCompleteButNotFinalized)
+        continue
+    end
+    
+    % limit to 500 jobs for sacct at once
+    iCompleteButNotFinalized = iCompleteButNotFinalized(1:min([500,length(iCompleteButNotFinalized)]));
+    
+    % get stats of completed jobs
+    jobInfo = sacct_query([jobs(iCompleteButNotFinalized).id]);
     for iJob = 1:length(iCompleteButNotFinalized)
+        
         jJob = iCompleteButNotFinalized(iJob);
         jobid = jobs(jJob).id;
         jobs(jJob).isFinalized = true;
-        jobs(jJob).update_state()
+        jobs(jJob).readFromDisk = jobInfo(iJob).MaxDiskRead;
+        jobs(jJob).wroteToDisk = jobInfo(iJob).MaxDiskWrite;
+        jobs(jJob).duration = str2double(jobInfo(iJob).ElapsedRaw);
+        jobs(jJob).memoryUsed = jobInfo(iJob).MaxVMSize;
         
-        switch jobs(jJob).state
+        state = strtok(jobInfo(iJob).State);
+        jobs(jJob).state = state;
+%         jobs(jJob).update_state()
+        
+        
+        switch state
             case 'COMPLETED'             
                 
                 
@@ -82,17 +101,18 @@ while any(~[jobs.isFinalized]) && ~breakOut
                 [~, errorTail] = system(['tail -n 5 ' jobs(jJob).logFile]);
                 warning('An error occured in job %u (id %u).\n%s\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
                     jJob, jobid, errorTail, jobs(jJob).logFile, jobs(jJob).logFile)
-                fprintf(repmat(' ', 1,length(printString)));
+                fprintf(repmat(' ', 1,length(printString)-1));
                 fprintf('\n')
                 jobs(jJob).deleteFiles = false;
                 if stopOnError
                     breakOut = true;
                     break
                 end
-            otherwise
+            otherwise                
+                disp(state)
                 jobs(jJob).isComplete = false;
                 jobs(jJob).isFinalized = false;
         end
         pause(0.001)
-    end           
+    end              
 end
