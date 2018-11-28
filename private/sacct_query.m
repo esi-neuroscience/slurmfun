@@ -39,27 +39,19 @@ cmd = [sprintf('sacct -o %s --noconvert -P -n -j ', outputFormat) sprintf('%d.0,
 [status, output] = system(cmd);
 [~, remainder] = system('');
 output = [output, remainder];
+while ~isempty(remainder)            
+    [~, remainder] = system('');
+    output = [output, remainder];            
+end
 assert(status == 0, 'Could not retreive job status of job %d', jobId)
 
 
 % parse output
-
 output = strsplit(output, char(10));
 for iJob = 1:length(jobId)
     jobOutput = output{iJob};
     jobOutput = strsplit(strrep(jobOutput, char(10), ''), '|', 'CollapseDelimiters', false);
     jobInfo(iJob) = cell2struct(jobOutput, fields,2);
 end
-
-% %% get memory consumption if complete
-% if length(output) > 2
-%     batchOutput = output{end-1};
-%     batchOutput = strsplit(strrep(batchOutput, newline, ''), '|', 'CollapseDelimiters', false);
-%     batchOutput = cell2struct(batchOutput, fields,2);
-%     jobInfo.MaxRSS = batchOutput.MaxRSS;
-%     jobInfo.MaxVMSize = batchOutput.MaxVMSize;
-%     jobInfo.MaxDiskRead = batchOutput.MaxDiskRead;
-%     jobInfo.MaxDiskWrite = batchOutput.MaxDiskWrite;
-% end
 
 
