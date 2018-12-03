@@ -148,13 +148,13 @@ jobs(nJobs) = MatlabJob;
 slurmWDCreated = false;
 % permissions
 if ~(exist(parser.Results.slurmWorkingDirectory, 'dir') == 7)
-    result = system(['mkdir -p ' parser.Results.slurmWorkingDirectory]);
+    result = system_read_buffer_until_empty(['mkdir -p ' parser.Results.slurmWorkingDirectory]);
     assert(result == 0, 'Could not create SLURM working directory (%s)', ...
         parser.Results.slurmWorkingDirectory)
     slurmWDCreated = true;
 end
 cmd = sprintf('chmod -R g+w %s', parser.Results.slurmWorkingDirectory);
-result = system(cmd);
+result = system_read_buffer_until_empty(cmd);
 assert(result == 0, ...
     'Could not set write permissions for SLURM working directory (%s)', ...
     parser.Results.slurmWorkingDirectory)
@@ -258,10 +258,15 @@ for iJob = 1:nJobs
         out{iJob} = tmpOut.out;
         
         if isa(tmpOut.out, 'MException')
-            warning('A MATLAB error occured in job %u (id %u).\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
-                    iJob, jobs(iJob).id, jobs(iJob).logFile, jobs(iJob).logFile)
+            msg = sprintf('A MATLAB error occured in job %u (id %u).\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
+                iJob, jobs(iJob).id, jobs(iJob).logFile, jobs(iJob).logFile);
+            warning(msg)
             warning(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
             jobs(iJob).deleteFiles = false;
+            if parser.Results.stopOnError
+                rethrow(tmpOut.out)                            
+            end
+            
         end
     end
 end

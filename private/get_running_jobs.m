@@ -5,14 +5,9 @@ if nargin == 0
     account = getenv('USER');
 end
 squeueCmd = sprintf('squeue -A %s -h -o "%%A %%T"', account);
-[result, allJobs] = system(squeueCmd);
+[result, allJobs] = system_read_buffer_until_empty(squeueCmd);
 assert(result == 0, 'squeue query failed');
-[~, remainder] = system('');
-allJobs = [allJobs remainder];
-while ~isempty(remainder)            
-    [~, remainder] = system('');
-    allJobs = [allJobs, remainder];            
-end
+
 
 if isempty(allJobs)
     id = [];

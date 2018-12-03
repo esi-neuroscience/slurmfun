@@ -45,10 +45,7 @@ classdef MatlabJob < handle
                 obj.userAccount, folder, obj.gid);
             cmd = sprintf('%s -p %s -o %s %s -m "%s" "%s"', ...
                 baseCmd, partition, logFile, obj.matlabCaller, matlabBinary, cmd);
-            [result, obj.id] = system(cmd);
-            % workaround for MATLAB bug: https://www.mathworks.com/support/bugreports/1400063
-            [~,remainder] = system('');
-            obj.id = [obj.id remainder];
+            [result, obj.id] = system_read_buffer_until_empty(cmd);                                
             assert(result == 0 || isempty(obj.id), 'Submission failed: %s\n', obj.id)
             obj.id = uint32(sscanf(obj.id,'%u'));
             obj.isComplete = false;
@@ -82,7 +79,7 @@ classdef MatlabJob < handle
             end
             if ~obj.isComplete && ~isempty(obj.id)
                 cmd = sprintf('scancel %u', obj.id);
-                result = system(cmd);
+                result = system_read_buffer_until_empty(cmd);
                 assert(result == 0, 'Could not cancel job %u', obj.id)
             end                                                
             

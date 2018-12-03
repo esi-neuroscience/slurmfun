@@ -36,13 +36,7 @@ outputFormat(end) = '';
 
 cmd = [sprintf('sacct -o %s --noconvert -P -n -j ', outputFormat) sprintf('%d.0,', jobId)];
 
-[status, output] = system(cmd);
-[~, remainder] = system('');
-output = [output, remainder];
-while ~isempty(remainder)            
-    [~, remainder] = system('');
-    output = [output, remainder];            
-end
+[status, output] = system_read_buffer_until_empty(cmd);
 assert(status == 0, 'Could not retreive job status of job %d', jobId)
 
 
