@@ -5,7 +5,11 @@ function [status, output] = system_read_buffer_until_empty(varargin)
 
 [status, output] = system(varargin{:});
 [~, remainder] = system('');
-while ~isempty(remainder)   
-	output = [output, remainder];         
-    [~, remainder] = system('');    
+bufferEmpty = isempty(remainder);
+while ~bufferEmpty           
+    pause(1)
+    [~, remainder] = system('');
+	output = [output, remainder];             
+    bufferEmpty = isempty(remainder);   
+    warning('buffer not empty: %g remaining chars', length(remainder))        
 end
