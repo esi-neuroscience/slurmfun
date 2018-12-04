@@ -1,10 +1,14 @@
 function [id, state] = get_running_jobs(account)
 % GET_RUNNING_JOBS - Receive job ids of currently running jobs
 %
+persistent pid
+if isempty(pid)
+    pid = feature('getpid');
+end
 if nargin == 0
     account = getenv('USER');
 end
-tmpFile = fullfile('/tmp/', sprintf('%s_jobs_%u', account, round(now*1E6)));
+tmpFile = fullfile('/tmp/', sprintf('%s_jobs_%u', account, pid));
 squeueCmd = sprintf('squeue -A %s -h -o "%%A %%T">%s', account, tmpFile);
 [result, ~] = system(squeueCmd);
 
