@@ -2,7 +2,7 @@
 clc
 % addpath /opt/ESIsoftware/slurmfun
 dbstop if error
-nJobs = 200;
+nJobs = 1000;
 inputArgs1 = num2cell(randi(20,nJobs,1)+60);
 inputArgs2 = num2cell(randi(20,nJobs,1)+60);
 inputArgs1{end+1} = 5000000000;

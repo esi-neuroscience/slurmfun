@@ -10,6 +10,5 @@ while ~bufferEmpty
     pause(1)
     [~, remainder] = system('');
 	output = [output, remainder];             
-    bufferEmpty = isempty(remainder);   
-    warning('buffer not empty: %g remaining chars', length(remainder))        
+    bufferEmpty = isempty(remainder);       
 end
