@@ -69,8 +69,8 @@ while any(~[jobs.isFinalized]) && ~breakOut
         continue
     end
     
-    % limit to 40 jobs for sacct at once
-    iCompleteButNotFinalized = iCompleteButNotFinalized(1:min([40,length(iCompleteButNotFinalized)]));
+    % limit to 500 jobs for sacct at once
+    iCompleteButNotFinalized = iCompleteButNotFinalized(1:min([500,length(iCompleteButNotFinalized)]));
     
     % get stats of completed jobs
     jobInfo = sacct_query([jobs(iCompleteButNotFinalized).id]);
