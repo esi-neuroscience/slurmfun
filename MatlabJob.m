@@ -79,7 +79,7 @@ classdef MatlabJob < handle
             end
             if ~obj.isComplete && ~isempty(obj.id)
                 cmd = sprintf('scancel %u', obj.id);
-                result = system_read_buffer_until_empty(cmd);
+                result = system(cmd);
                 assert(result == 0, 'Could not cancel job %u', obj.id)
             end                                                
             

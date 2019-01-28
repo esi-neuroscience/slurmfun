@@ -98,7 +98,7 @@ while any(~[jobs.isFinalized]) && ~breakOut
                 jobs(jJob).isFinalized = false;
             case {'FAILED','CANCELLED','TIMEOUT'}
                 fprintf('\n')
-                [~, errorTail] = system_read_buffer_until_empty(['tail -n 5 ' jobs(jJob).logFile]);
+                [~, errorTail] = system_out_to_disk(['tail -n 5 ' jobs(jJob).logFile]);
                 warning('An error occured in job %u (id %u).\n%s\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
                     jJob, jobid, errorTail, jobs(jJob).logFile, jobs(jJob).logFile)
                 fprintf(repmat(' ', 1,length(printString)-1));

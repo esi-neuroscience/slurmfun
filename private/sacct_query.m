@@ -40,31 +40,17 @@ outputFormat(end) = '';
 
 cmd = [sprintf('sacct -o %s --noconvert -P -n -j ', outputFormat) sprintf('%d.0,', jobId)];
 
-retries = 0;
-maxRetries = 4;
-pauseTime = 0.5;
 
-while retries <= maxRetries
-    try
-        [status, output] = system_read_buffer_until_empty(cmd);
-        assert(status == 0, 'Could not retreive job status of job %d', jobId)
-        
-        % parse output
-        output = strsplit(output, char(10));
-        for iJob = 1:length(jobId)
-            jobOutput = output{iJob};
-            jobOutput = strsplit(strrep(jobOutput, char(10), ''), '|', 'CollapseDelimiters', false);
-            jobInfo(iJob) = cell2struct(jobOutput, fields,2);
-        end
-        return
-    catch me        
-        pause(pauseTime)
-        pauseTime = pauseTime*2;
-        retries = retries + 1
-        if retries > maxRetries
-            rethrow(me)
-        end
-    end
+[status, output] = system_out_to_disk(cmd);
+assert(status == 0, 'Could not retreive job status of job %d', jobId)
+
+% parse output
+output = strsplit(output, char(10));
+for iJob = 1:length(jobId)
+    jobOutput = output{iJob};
+    jobOutput = strsplit(strrep(jobOutput, char(10), ''), '|', 'CollapseDelimiters', false);
+    jobInfo(iJob) = cell2struct(jobOutput, fields,2);
 end
-    
+
+
 
