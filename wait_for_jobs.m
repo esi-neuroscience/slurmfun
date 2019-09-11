@@ -43,7 +43,7 @@ fprintf(printString)
 
 
 while any(~[jobs.isFinalized]) && ~breakOut
-    pause(1)
+    pause(10)
     
     [ids, ~] = get_running_jobs();
     

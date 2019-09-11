@@ -227,7 +227,7 @@ for iJob = 1:nJobs
         parser.Results.partition, jobs(iJob).logFile, parser.Results.matlabCmd);
     jobs(iJob).deleteFiles = parser.Results.deleteFiles;
     
-    pause(0.001)
+    pause(0.020)
     
 end
 
