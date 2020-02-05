@@ -45,9 +45,9 @@ classdef MatlabJob < handle
                 obj.userAccount, folder, obj.gid);
             cmd = sprintf('%s -p %s -o %s %s -m "%s" "%s"', ...
                 baseCmd, partition, logFile, obj.matlabCaller, matlabBinary, cmd);
-            [result, obj.id] = system_read_buffer_until_empty(cmd);                                
-            assert(result == 0 || isempty(obj.id), 'Submission failed: %s\n', obj.id)
+            [result, obj.id] = system_out_to_disk(cmd);                                            
             obj.id = uint32(sscanf(obj.id,'%u'));
+            assert(result == 0 || isempty(obj.id), 'Submission failed: %s\n', obj.id)
             obj.isComplete = false;
             obj.account = obj.userAccount;
             obj.logFile = logFile;
