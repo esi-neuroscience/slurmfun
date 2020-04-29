@@ -16,7 +16,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     the array determines number of jobs submitted to SLURM.
 %
 % This function has a number of optional arguments for configuration:
-%   'partition'     : name of partition/queue to be submitted to. Default
+%   'partition'     : name(s) of partition/queue to be submitted to. Default
 %                     is the default SLURM queue.
 %   'matlabCmd'     : path to matlab binary to be used. Default is the same
 %                     as the submitting user
@@ -83,17 +83,23 @@ parser = inputParser;
 % function
 parser.addRequired('func', @(x) isa(x, 'function_handle')||ischar(x));
 
-
 % partitions
-[availablePartitions,defaultPartition] = get_available_partitions();
+[~ ,defaultPartition] = get_available_partitions();
 parser.addParameter('partition', defaultPartition, ...
-    @(x) ischar(validatestring(x, availablePartitions)))
+    @validate_partition)
+
+% number of CPU Cores per job
+parser.addParameter('cpu', 1, @isscalar);
+
+% allocated memory of each job
+parser.addParameter('mem', '8000M', @isstr);
 
 % copy user path
 parser.addParameter('useUserPath', true, @islogical);
 
 % MATLAB
-parser.addParameter('matlabCmd', fullfile(matlabroot, 'bin', 'matlab'), @(x) ischar(x) && exist(x, 'file') == 2)
+parser.addParameter('matlabCmd', fullfile(matlabroot, 'bin', 'matlab'), ...
+    @(x) ischar(x) && exist(x, 'file') == 2)
 
 % SLURM home folder
 account = getenv('USER');
@@ -125,6 +131,8 @@ varargin = varargin(iFirstParameter:end);
 % assert(cellfuniscell(inputArguments), 'Input arguments must a cell array')
 
 
+nArgs = length(inputArguments);
+nJobs = length(inputArguments{1});
 
 % parse inputs
 parser.parse(func, varargin{:})
@@ -133,15 +141,22 @@ if ischar(parser.Results.func)
     func = str2func(parser.Results.func);
 end
 
+if ischar(parser.Results.partition)
+   partition = repmat({ parser.Results.partition}, [1, nJobs]);
+else
+    assert(length(parser.Results.partition) == nJobs, ...
+        'Number of defined partitions must be single string or cell array of same length as jobs')    
+    partition = parser.Results.partition;
+end
+    
+
+
 if parser.Results.useUserPath
     assert(strcmp(parser.Results.matlabCmd, ...
         fullfile(matlabroot, 'bin', 'matlab')), ...
         'If useUserPath is true, matlabBinary must match current MATLAB')
 end
 
-
-nArgs = length(inputArguments);
-nJobs = length(inputArguments{1});
 jobs(nJobs) = MatlabJob;
 
 %% Working directory
@@ -221,10 +236,12 @@ fexecCmd = 'try fexec(func, inputArgs, outputFile); catch exit; end';
 for iJob = 1:nJobs
     cmd = '';
     loadCmd = sprintf('load(''%s'');', jobs(iJob).inputFile);
+    jobs(iJob).partition = partition{iJob};
+    jobs(iJob).allocCPU = parser.Results.cpu;
+    jobs(iJob).allocMEM = parser.Results.mem;
     
     cmd = [licenseCheckoutCmd, loadCmd, userPathCmd, fexecCmd];
-    jobs(iJob).run_cmd(cmd, ...
-        parser.Results.partition, jobs(iJob).logFile, parser.Results.matlabCmd);
+    jobs(iJob).run_cmd(cmd);
     jobs(iJob).deleteFiles = parser.Results.deleteFiles;
     
     pause(0.020)
@@ -309,7 +326,6 @@ if nargout == 0
 end
 
 end
-
 
 
 function delete_if_exist(delFiles, delFolder, folderFlag, LD_PRELOAD)

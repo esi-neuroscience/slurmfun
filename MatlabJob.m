@@ -1,23 +1,24 @@
 classdef MatlabJob < handle
     
     properties
-        id % SLURM job id                
+        id % SLURM job id
+        partition
+        logFile
+        matlabBinary = fullfile(matlabroot, 'bin', 'matlab')
         deleteFiles = true
         state
+        allocCPU = 1
+        allocMEM = '8000M'        
         memoryUsed
         readFromDisk
         wroteToDisk
-        duration        
-        logFile
-        partition
+        duration
         account
         isComplete = false
         isFinalized = false
-        inputFile 
+        inputFile
         outputFile
     end
-    
-    
     
     properties ( Constant = true, Access = private )
         userAccount = getenv('USER');
@@ -38,21 +39,33 @@ classdef MatlabJob < handle
             end
         end
         
-        function run_cmd(obj, cmd, partition, logFile, matlabBinary)
-            [folder,~,~] = fileparts(logFile);
+        function run_cmd(obj, cmd)
+            if ~isempty(obj.logFile)
+                [folder,~,~] = fileparts(obj.logFile);
+            else
+                folder = pwd;
+            end
+            
+            % construct base sbatch command: account, folder, group
             baseCmd = sprintf(...
                 'sbatch -A %s -D %s --gid=%u --parsable ', ...
                 obj.userAccount, folder, obj.gid);
+            
+            % construct sbatch command: partition, log
+            baseCmd = sprintf('%s --mem %s -n1 -N1 -c %d ', ...
+                baseCmd, obj.allocMEM, obj.allocCPU);
+            
+            % construct sbatch command: partition, log
             cmd = sprintf('%s -p %s -o %s %s -m "%s" "%s"', ...
-                baseCmd, partition, logFile, obj.matlabCaller, matlabBinary, cmd);
-            [result, obj.id] = system_out_to_disk(cmd);                                            
+                baseCmd, obj.partition, obj.logFile, obj.matlabCaller, obj.matlabBinary, cmd);
+            [result, obj.id] = system_out_to_disk(cmd);
             obj.id = uint32(sscanf(obj.id,'%u'));
             assert(result == 0 || isempty(obj.id), 'Submission failed: %s\n', obj.id)
             obj.isComplete = false;
             obj.account = obj.userAccount;
-            obj.logFile = logFile;
-        end
             
+        end
+        
         
         function update_state(obj)
             assert(~isempty([obj.id]), 'Undefined job id')
@@ -81,7 +94,7 @@ classdef MatlabJob < handle
                 cmd = sprintf('scancel %u', obj.id);
                 result = system(cmd);
                 assert(result == 0, 'Could not cancel job %u', obj.id)
-            end                                                
+            end
             
             if obj.deleteFiles
                 warning('off', 'MATLAB:DELETE:FileNotFound')
