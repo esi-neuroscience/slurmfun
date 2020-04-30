@@ -51,8 +51,10 @@ while any(~[jobs.isFinalized]) && ~breakOut
     
     % write state of currently active jobs into job objects
     for iJob = 1:length(activeIds)
-        jJob = [jobs.id] == activeIds(iJob);
-        jobs(jJob).state = state{iJob};
+        jJob = find([jobs.id] == activeIds(iJob));
+        if length(jJob) == 1
+            jobs(jJob).state = state{iJob};
+        end
     end
     
     notActive = ~ismember([jobs.id], activeIds);
