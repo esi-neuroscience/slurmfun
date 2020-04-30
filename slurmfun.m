@@ -223,7 +223,7 @@ end
 %% Submit jobs
 
 fprintf('Submitting %u jobs into %d partitions at %s\n', ...
-    nJobs, length(partition), datestr(now))
+    nJobs, length(unique(partition)), datestr(now))
 
 tSubmission = tic;
 
