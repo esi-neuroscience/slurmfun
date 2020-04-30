@@ -20,7 +20,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     is the default SLURM queue.
 %   'mem'           : bytes of memory to be used for each job as str or 
 %                     cell array of str. Unit are K, M or G.
-%                     Default='8000M'.
+%                     Default='', i.e. partition default
 %   'cpu'           : number of cpu cores to be used for each job.
 %                     Default=1
 %   'matlabCmd'     : path to matlab binary to be used. Default is the same
@@ -94,7 +94,7 @@ parser.addParameter('partition', defaultPartition, ...
 parser.addParameter('cpu', 1, @isnumeric);
 
 % allocated memory of each job
-parser.addParameter('mem', '8000M', ...
+parser.addParameter('mem', '', ...
     @(x) ischar(x) || iscell(x));
 
 % copy user path
@@ -265,7 +265,7 @@ for iJob = 1:nJobs
     jobs(iJob).run_cmd(cmd);
     jobs(iJob).deleteFiles = parser.Results.deleteFiles;
     
-    pause(0.020)
+    pause(0.01)
     
 end
 

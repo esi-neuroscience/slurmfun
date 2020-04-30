@@ -8,7 +8,7 @@ classdef MatlabJob < handle
         deleteFiles = true
         state = 'UNKNOWN'
         allocCPU = 1
-        allocMEM = '8000M'        
+        allocMEM = ''        
         memoryUsed
         readFromDisk
         wroteToDisk
@@ -52,8 +52,14 @@ classdef MatlabJob < handle
                 obj.userAccount, folder, obj.gid);
             
             % construct sbatch command: partition, log
-            baseCmd = sprintf('%s --mem %s -n1 -N1 -c %d ', ...
-                baseCmd, obj.allocMEM, obj.allocCPU);
+            baseCmd = sprintf('%s -n1 -N1 -c %d ', ...
+                baseCmd, obj.allocCPU);
+            
+            % add memory if specified
+            if ~isempty(obj.allocMEM)
+                baseCmd = sprintf('%s --mem %s ', baseCmd, obj.allocMEM);
+            end
+                
             
             % construct sbatch command: partition, log
             cmd = sprintf('%s -p %s -o %s %s -m "%s" "%s"', ...
