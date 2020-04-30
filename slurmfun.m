@@ -18,27 +18,29 @@ function [out, jobs] = slurmfun(func, varargin)
 % This function has a number of optional arguments for configuration:
 %   'partition'     : name(s) of partition/queue to be submitted to. Default
 %                     is the default SLURM queue.
+%   'mem'           : bytes of memory to be used for each job as str or 
+%                     cell array of str. Unit are K, M or G.
+%                     Default='8000M'.
+%   'cpu'           : number of cpu cores to be used for each job.
+%                     Default=1
 %   'matlabCmd'     : path to matlab binary to be used. Default is the same
 %                     as the submitting user
 %   'stopOnError'   : boolean flag for continuing execution after a job
-%                     fails. Default is true.
+%                     fails. Default=true.
 %   'slurmWorkingDirectory' : path to working directory where input, output
 %                     and logfiles will be created. Default is
 %                     /mnt/hpx/slurm/<user>/<user>_<date/, e.g.
 %                     /mnt/hpx/slurm/schmiedtj/schmiedtj_20170823-125121
 %   'deleteFiles'   : boolean flag for deletion of input, output and log
-%                     files after completion of all jobs. Default is true.
+%                     files after completion of all jobs. Default=true.
 %   'useUserPath'   : boolean flag whether the MATLAB path of the user
-%                     should be used in job. Default is true.
+%                     should be used in job. Default=true.
 %   'waitForReturn' : boolean flag whether MATLAB should wait for the jobs
-%                     to finish before returning. Default is true. If
+%                     to finish before returning. Default=true. If
 %                     false, the out argument is an ObjectArray of
 %                     MatlabJob elements. Use the wait_for_jobs function to
 %                     wait until completion.
-%   'waitForToolboxes' : cell array of toolbox names to wait for. Default
-%   is {}. Avilable toolboxes are
-%       {'statistics_toolbox', 'signal_toolbox', 'image_toolbox', ...
-%        'curve_fitting_toolbox', 'GADS_toolbox', 'optimization_toolbox'}
+%   'waitForToolboxes' : cell array of toolbox names to wait for. Default={}. 
 %
 %
 % OUTPUT
@@ -89,10 +91,11 @@ parser.addParameter('partition', defaultPartition, ...
     @validate_partition)
 
 % number of CPU Cores per job
-parser.addParameter('cpu', 1, @isscalar);
+parser.addParameter('cpu', 1, @isnumeric);
 
 % allocated memory of each job
-parser.addParameter('mem', '8000M', @isstr);
+parser.addParameter('mem', '8000M', ...
+    @(x) ischar(x) || iscell(x));
 
 % copy user path
 parser.addParameter('useUserPath', true, @islogical);
@@ -149,7 +152,22 @@ else
     partition = parser.Results.partition;
 end
     
+if ischar(parser.Results.mem)
+   mem = repmat({ parser.Results.mem}, [1, nJobs]);
+elseif iscell(parser.Results.mem)
+    assert(length(parser.Results.mem) == nJobs, ...
+        'Number of memory must be single string or cell array of same length as jobs')    
+    mem = parser.Results.mem;
+end
 
+
+if length(parser.Results.cpu) == 1
+    cpu = repmat(parser.Results.cpu, [1, nJobs]);
+elseif length(parser.Results.cpu) == nJobs
+    cpu = parser.Results.cpu;
+else
+    error('Length of cpu array doesn''t match number of jobs')
+end
 
 if parser.Results.useUserPath
     assert(strcmp(parser.Results.matlabCmd, ...
@@ -204,8 +222,8 @@ for iJob = 1:nJobs
 end
 %% Submit jobs
 
-fprintf('Submitting %u jobs into %s at %s\n', ...
-    nJobs, parser.Results.partition, datestr(now))
+fprintf('Submitting %u jobs into %d partitions at %s\n', ...
+    nJobs, length(partition), datestr(now))
 
 tSubmission = tic;
 
@@ -234,12 +252,15 @@ fexecCmd = 'try fexec(func, inputArgs, outputFile); catch exit; end';
 
 
 for iJob = 1:nJobs
+    
+    % set job parameters
+    jobs(iJob).partition = partition{iJob};
+    jobs(iJob).allocCPU = cpu(iJob);
+    jobs(iJob).allocMEM = mem{iJob};
+    
+    % construct MATLAB command
     cmd = '';
     loadCmd = sprintf('load(''%s'');', jobs(iJob).inputFile);
-    jobs(iJob).partition = partition{iJob};
-    jobs(iJob).allocCPU = parser.Results.cpu;
-    jobs(iJob).allocMEM = parser.Results.mem;
-    
     cmd = [licenseCheckoutCmd, loadCmd, userPathCmd, fexecCmd];
     jobs(iJob).run_cmd(cmd);
     jobs(iJob).deleteFiles = parser.Results.deleteFiles;
