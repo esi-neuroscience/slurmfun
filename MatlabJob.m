@@ -6,7 +6,7 @@ classdef MatlabJob < handle
         logFile
         matlabBinary = fullfile(matlabroot, 'bin', 'matlab')
         deleteFiles = true
-        state
+        state = 'UNKNOWN'
         allocCPU = 1
         allocMEM = '8000M'        
         memoryUsed
