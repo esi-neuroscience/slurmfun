@@ -37,33 +37,46 @@ fprintf('Waiting for jobs to complete\n')
 tStart = tic;
 breakOut = false;
 
-printString = sprintf('PENDING/RUNNING jobs: %6d\nElapsed time: %6.1f min\n', ...
-    sum(~[jobs.isComplete]), toc(tStart)/60);
-fprintf(printString)
-
-
 while any(~[jobs.isFinalized]) && ~breakOut
-    pause(10)
     
-    [ids, ~] = get_running_jobs();
+    [activeIds, state] = get_active_jobs();
     
-    fprintf(repmat('\b',1,length(printString)));
-    printString = sprintf('PENDING/RUNNING jobs: %6d\nElapsed time: %6.1f min\n', ...
-        sum(~[jobs.isComplete]), toc(tStart)/60);
+%     if isempty(runningIds) && any(~[jobs.isComplete])
+%         nRunningEmpty = nRunningEmpty+1;
+%         if nRunningEmpty > nRunningEmptyWarnThreshold
+%             warning('Could not determine job status as the SLURM controller was not reachable for a while')                     
+%         end
+%         continue
+%     end
+    
+    % write state of currently active jobs into job objects
+    for iJob = 1:length(activeIds)
+        jJob = [jobs.id] == activeIds(iJob);
+        jobs(jJob).state = state{iJob};
+    end
+    
+    notActive = ~ismember([jobs.id], activeIds);
+    isActive = ismember([jobs.id], activeIds);
+    
+    if any(isActive)
+        [jobs(isActive).isComplete] = deal(false);
+    end
+    if any(~isActive)
+        [jobs(~isActive).isComplete] = deal(true);
+    end
+    
+    iCompleteButNotFinalized = find(notActive & ~[jobs.isFinalized]);        
+    
+    % print current states
+    [stateName, ~, idx] = unique({jobs.state});
+    printString = sprintf('Elapsed time : %6.1f min\n', toc(tStart)/60);
+    for iState = 1:length(stateName)
+        printString = sprintf('%s%12s : %4d\n', printString, ...
+            stateName{iState}, sum(idx==iState));
+    end
     fprintf(printString)
-
-    notRunning = ~ismember([jobs.id], ids);
-    isRunning = ismember([jobs.id], ids);
-    
-    if any(isRunning)
-        [jobs(isRunning).isComplete] = deal(false);
-    end
-    if any(~isRunning)
-        [jobs(~isRunning).isComplete] = deal(true);
-    end
-    
-   
-    iCompleteButNotFinalized = find(notRunning & ~[jobs.isFinalized]);        
+    pause(10)
+    fprintf(repmat('\b',1,length(printString)))
     
     if isempty(iCompleteButNotFinalized)
         continue
@@ -85,14 +98,11 @@ while any(~[jobs.isFinalized]) && ~breakOut
         jobs(jJob).memoryUsed = jobInfo(iJob).MaxVMSize;
         
         state = strtok(jobInfo(iJob).State);
-        jobs(jJob).state = state;
-%         jobs(jJob).update_state()
-        
+        jobs(jJob).state = state;      
         
         switch state
             case 'COMPLETED'             
-                
-                
+                               
             case 'RUNNING'
                 jobs(jJob).isComplete = false;
                 jobs(jJob).isFinalized = false;
@@ -113,6 +123,8 @@ while any(~[jobs.isFinalized]) && ~breakOut
                 jobs(jJob).isComplete = false;
                 jobs(jJob).isFinalized = false;
         end
+        
         pause(0.001)
     end              
+    
 end
