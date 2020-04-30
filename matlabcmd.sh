@@ -36,11 +36,6 @@ while :; do
     shift
 done
 
-#inputFile=`readlink -f $1`
-#scriptFile=`readlink -f $2`
-#$matlab -nodisplay -singleCompThread -nodisplay -r "load $inputFile; path(userPath); fexec(func, inputVars, outputFile)"
-#$matlab -singleCompThread -nodisplay -r "path(userPath); run($scriptFile)"
-
 echo "---------------------------------------------------"
 echo "Job: $SLURM_JOB_ID"
 echo "Partition: $SLURM_JOB_PARTITION"
@@ -52,4 +47,4 @@ echo "Command: $1"
 echo "---------------------------------------------------"
 echo ""
 
-srun $matlab -singleCompThread -nodisplay -nosplash -r  "try $1; exit; catch exit; end"
+srun $matlab -nodisplay -nosplash -r  "try $1; exit; catch exit; end"
