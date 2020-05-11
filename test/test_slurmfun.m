@@ -1,8 +1,9 @@
+addpath(fileparts(mfilename('fullpath')))
 
 clc
 
 dbstop if error
-nJobs = 1000;
+nJobs = 20;
 inputArgs1 = num2cell(randi(20,nJobs,1)+60);
 inputArgs2 = num2cell(randi(20,nJobs,1)+60);
 inputArgs1{end+1} = 5000000000;
@@ -17,7 +18,7 @@ inputArgs2{end+1} = 1;
     'cpu', 1, ...
     'waitForReturn', true);
 
-
+assert(numel(out) == nJobs + 1)
 %% test varying partitions
 partition = {'8GBS', '16GBS', '24GBL'};
 mem = {'8000M', '16000M', '24000M'};
@@ -37,6 +38,20 @@ inputArgs2 = num2cell(randi(20,nJobs,1)+60);
     'waitForReturn', true);
 
 
+%% no outputs
+
+% no output
+[out, jobs] = slurmfun(@function_without_output, {'in1'}, {'in2'}, ...
+    'stopOnError', false, ...
+    'deleteFiles', true, ...    
+    'waitForReturn', true);
+
+%% multiple outputs
+[out, jobs] = slurmfun(@function_with_multiple_outputs, {'in1'}, {'in2'}, ...
+    'stopOnError', false, ...
+    'deleteFiles', true, ...    
+    'waitForReturn', true);
+assert(numel(out{1}) == 2);
 
 %%
 [out2, jobs2] = slurmfun(@myfunction_with_errors, inputArgs1(1), ...
