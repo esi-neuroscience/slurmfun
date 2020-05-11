@@ -3,8 +3,18 @@ function out = fexec(func, inputVars, outputFile)
 % input file must contain the variables func, inputVars, outputFile
 fprintf('Trying to evaluate %s\n', func2str(func))
 try
-    varargout = feval(func, inputVars{:});
-    out = varargout;
+    
+    nOutput = nargout(func);
+    if nOutput > 1
+        out = cell(1, nOutput);
+        [out{:}] = feval(func, inputVars{:});
+    elseif nOutput == 1
+        out = feval(func, inputVars{:});
+    elseif nOutput == 0
+        out = '';
+    else
+        error('Unsupported number of output arguments (%d)', nOutput)
+    end
     outSize = whos('out');
     if outSize.bytes > 2*1024*1024*1024
         error(['Size of the output arguments must not exceed 2 GB. ', ...
