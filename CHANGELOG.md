@@ -1,6 +1,11 @@
 Changelog for `slurmfun`
 =======================
 
+[0.4] - 2020-05-11
+------------------
+* Added support for functions with multiple output arguments
+* Re-added support for functions without output arguments
+
 [0.3] - 2020-04-30
 ------------------
 * Added `'cpu'` and `'mem'` options to configure number of cores and memory
