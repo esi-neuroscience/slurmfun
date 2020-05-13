@@ -265,7 +265,7 @@ for iJob = 1:nJobs
     jobs(iJob).run_cmd(cmd);
     jobs(iJob).deleteFiles = parser.Results.deleteFiles;
     
-    pause(0.01)
+    pause(0.005)
     
 end
 
