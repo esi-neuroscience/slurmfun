@@ -71,16 +71,17 @@ while any(~[jobs.isFinalized]) && ~breakOut
     
     % print current states
     [stateName, ~, idx] = unique({jobs.state});
-    printString = sprintf('Elapsed time : %6.1f min\n', toc(tStart)/60);
+    printString = sprintf('%16s : %6.1f min\n', 'Elapsed time', toc(tStart)/60);
     for iState = 1:length(stateName)
-        printString = sprintf('%s%12s : %4d\n', printString, ...
+        printString = sprintf('%s%16s : %4d\n', printString, ...
             stateName{iState}, sum(idx==iState));
     end
     fprintf(printString)
     pause(10)
-    fprintf(repmat('\b',1,length(printString)))
+
     
     if isempty(iCompleteButNotFinalized)
+        fprintf(repmat('\b',1,length(printString)))
         continue
     end
     
@@ -89,6 +90,8 @@ while any(~[jobs.isFinalized]) && ~breakOut
     
     % get stats of completed jobs
     jobInfo = sacct_query([jobs(iCompleteButNotFinalized).id]);
+    fprintf(repmat('\b',1,length(printString)))
+    
     for iJob = 1:length(iCompleteButNotFinalized)
         
         jJob = iCompleteButNotFinalized(iJob);
@@ -113,12 +116,14 @@ while any(~[jobs.isFinalized]) && ~breakOut
                 [~, errorTail] = system_out_to_disk(['tail -n 5 ' jobs(jJob).logFile]);
                 warning('An error occured in job %u (id %u).\n%s\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
                     jJob, jobid, errorTail, jobs(jJob).logFile, jobs(jJob).logFile)
-                fprintf(repmat(' ', 1,length(printString)-1));
+%                 fprintf(repmat(' ', 1,length(printString)-1));
                 fprintf('\n')
                 jobs(jJob).deleteFiles = false;
                 if stopOnError
                     breakOut = true;
                     break
+                else
+                    
                 end
             otherwise                
                 disp(state)
@@ -126,7 +131,9 @@ while any(~[jobs.isFinalized]) && ~breakOut
                 jobs(jJob).isFinalized = false;
         end
         
-        pause(0.001)
+        if mod(iJob, 20) == 0
+            pause(0.001)
+        end
     end              
     
 end
