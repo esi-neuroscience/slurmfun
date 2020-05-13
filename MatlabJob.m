@@ -8,7 +8,7 @@ classdef MatlabJob < handle
         deleteFiles = true
         state = 'UNKNOWN'
         allocCPU = 1
-        allocMEM = ''        
+        allocMEM = ''
         memoryUsed
         readFromDisk
         wroteToDisk
@@ -48,8 +48,8 @@ classdef MatlabJob < handle
             
             % construct base sbatch command: account, folder, group
             baseCmd = sprintf(...
-                'sbatch -A %s -D %s --gid=%u --parsable ', ...
-                obj.userAccount, folder, obj.gid);
+                'sbatch -A %s -D %s --parsable ', ...
+                obj.userAccount, folder);
             
             % construct sbatch command: partition, log
             baseCmd = sprintf('%s -n1 -N1 -c %d ', ...
@@ -59,14 +59,14 @@ classdef MatlabJob < handle
             if ~isempty(obj.allocMEM)
                 baseCmd = sprintf('%s --mem %s ', baseCmd, obj.allocMEM);
             end
-                
+            
             
             % construct sbatch command: partition, log
             cmd = sprintf('%s -p %s -o %s %s -m "%s" "%s"', ...
                 baseCmd, obj.partition, obj.logFile, obj.matlabCaller, obj.matlabBinary, cmd);
             [result, obj.id] = system_out_to_disk(cmd);
             obj.id = uint32(sscanf(obj.id,'%u'));
-            assert(result == 0 || isempty(obj.id), 'Submission failed: %s\n', obj.id)
+            assert(result == 0 || ~isempty(obj.id), 'Submission failed: %s\n', obj.id)
             obj.isComplete = false;
             obj.account = obj.userAccount;
             
