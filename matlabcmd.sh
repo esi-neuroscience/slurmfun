@@ -1,6 +1,6 @@
 #!/bin/bash
 
-matlab='/opt/matlab-2015b/bin/matlab'
+matlab='/mnt/hpx/opt/matlab-2020a/bin/matlab'
 export HOME=/mnt/hpx/slurm/$SLURM_JOB_ACCOUNT
 
 if [ ! -d "$HOME" ]; then
