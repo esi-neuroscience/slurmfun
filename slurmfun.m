@@ -18,7 +18,7 @@ function [out, jobs] = slurmfun(func, varargin)
 % This function has a number of optional arguments for configuration:
 %   'partition'     : name(s) of partition/queue to be submitted to. Default
 %                     is the default SLURM queue.
-%   'mem'           : bytes of memory to be used for each job as str or 
+%   'mem'           : bytes of memory to be used for each cpu as str or 
 %                     cell array of str. Unit are K, M or G.
 %                     Default='', i.e. partition default
 %   'cpu'           : number of cpu cores to be used for each job.
@@ -319,7 +319,7 @@ fprintf('%u jobs completed without errors, %u completed with errors, %u failed/a
     sum(~iMatlabError), sum(iMatlabError), sum(~iCompleted));
 
 
-memUsed = cellfun(@(x) str2double(x(1:end-1))/1024/1024, {jobs.memoryUsed}); % GB
+memUsed = cellfun(@(x) str2double(x)/1024/1024/1024, {jobs.memoryUsed}); % GB
 duration = [jobs.duration]/60; % s
 readData = cellfun(@(x) str2double(x(1:end-1))/1024, {jobs.readFromDisk}); % GB
 writtenData = cellfun(@(x) str2double(x(1:end-1))/1024, {jobs.wroteToDisk}); % GB
