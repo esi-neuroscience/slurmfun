@@ -1,6 +1,15 @@
 Changelog for `slurmfun`
 =======================
 
+[0.5] - 2020-05-15
+------------------
+* Changed 'mem' option to mean --mem-per-cpu for sbatch.
+  It used to be --mem, which actually translates to 
+  --mem-per-node/
+* Memory reporting is now only valid for the cgroup plugin (bytes)
+* The matlabcmd.sh script now defaults to MATLAB 2020a
+
+
 [0.4] - 2020-05-11
 ------------------
 * Added support for functions with multiple output arguments
