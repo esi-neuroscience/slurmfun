@@ -57,7 +57,7 @@ classdef MatlabJob < handle
             
             % add memory if specified
             if ~isempty(obj.allocMEM)
-                baseCmd = sprintf('%s --mem %s ', baseCmd, obj.allocMEM);
+                baseCmd = sprintf('%s --mem-per-cpu %s ', baseCmd, obj.allocMEM);
             end
             
             
