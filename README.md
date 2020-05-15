@@ -6,8 +6,8 @@ This repository provides tools for submitting MATLAB jobs into the SLURM (Simple
 ## Cluster Environment
 So far, `slurmfun` has only been used in the cluster environment of the Ernst Strungmann Institute for Neuroscience using
 
-* SLURM 17
-* MATLAB 2014a until 2018b
+* SLURM 17 and 20.02
+* MATLAB 2014a until 2020ab
 * Debian 8 and RHEL 8.1
 
 The default paths for log files and the SLURM working directory (`'slurmWorkingDirectory'`, `availableToolboxes` in `slurmfun.m`),  will have to be adjusted for the specific cluster environment.
