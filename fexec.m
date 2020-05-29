@@ -11,7 +11,7 @@ try
     elseif nOutput == 1
         out = feval(func, inputVars{:});
     elseif nOutput == 0
-        out = '';
+        out = 'no output';
     else
         error('Unsupported number of output arguments (%d)', nOutput)
     end
