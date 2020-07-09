@@ -12,6 +12,7 @@ try
         out = feval(func, inputVars{:});
     elseif nOutput == 0
         out = 'no output';
+        feval(func, inputVars{:});
     else
         error('Unsupported number of output arguments (%d)', nOutput)
     end
