@@ -87,7 +87,7 @@ parser.addRequired('func', @(x) isa(x, 'function_handle')||ischar(x));
 
 % partitions
 [~ ,defaultPartition] = get_available_partitions();
-parser.addParameter('partition', defaultPartition, ...
+parser.addParameter('partition', defaultPartition{1}, ...
     @validate_partition)
 
 % number of CPU Cores per job
@@ -126,7 +126,12 @@ parser.addParameter('waitForToolboxes', {}, @(x) all(ismember(x, availableToolbo
 
 % extract input arguments from varargin
 iFirstParameter = find(cellfun(@(x) ~iscell(x), varargin), 1);
-inputArguments = varargin(1:iFirstParameter-1);
+if isempty(iFirstParameter) % if no name-value pair parameters were given
+    inputArguments = varargin;
+else
+    inputArguments = varargin(1:iFirstParameter-1);
+end
+
 
 varargin = varargin(iFirstParameter:end);
 % input arguments
