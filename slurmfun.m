@@ -18,7 +18,7 @@ function [out, jobs] = slurmfun(func, varargin)
 % This function has a number of optional arguments for configuration:
 %   'partition'     : name(s) of partition/queue to be submitted to. Default
 %                     is the default SLURM queue.
-%   'mem'           : bytes of memory to be used for each cpu as str or 
+%   'mem'           : bytes of memory to be used for each cpu as str or
 %                     cell array of str. Unit are K, M or G.
 %                     Default='', i.e. partition default
 %   'cpu'           : number of cpu cores to be used for each job.
@@ -29,8 +29,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     fails. Default=true.
 %   'slurmWorkingDirectory' : path to working directory where input, output
 %                     and logfiles will be created. Default is
-%                     /mnt/hpx/slurm/<user>/<user>_<date/, e.g.
-%                     /mnt/hpx/slurm/schmiedtj/schmiedtj_20170823-125121
+%                     /cs/slurm/<user>/<user>_<date/, e.g.
+%                     /cs/slurm/schmiedtj/schmiedtj_20170823-125121
 %   'deleteFiles'   : boolean flag for deletion of input, output and log
 %                     files after completion of all jobs. Default=true.
 %   'useUserPath'   : boolean flag whether the MATLAB path of the user
@@ -40,7 +40,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     false, the out argument is an ObjectArray of
 %                     MatlabJob elements. Use the wait_for_jobs function to
 %                     wait until completion.
-%   'waitForToolboxes' : cell array of toolbox names to wait for. Default={}. 
+%   'waitForToolboxes' : cell array of toolbox names to wait for. Default={}.
 %
 %
 % OUTPUT
@@ -108,7 +108,7 @@ parser.addParameter('matlabCmd', fullfile(matlabroot, 'bin', 'matlab'), ...
 account = getenv('USER');
 submissionTime = datestr(now, 'YYYYmmDD-HHMMss');
 parser.addParameter('slurmWorkingDirectory', ...
-    fullfile('/mnt/hpx/slurm', account, [account '_' submissionTime]), @isstr);
+    fullfile('/cs/slurm', account, [account '_' submissionTime]), @isstr);
 
 % stop on error
 parser.addParameter('stopOnError', true, @islogical);
@@ -153,15 +153,15 @@ if ischar(parser.Results.partition)
    partition = repmat({ parser.Results.partition}, [1, nJobs]);
 else
     assert(length(parser.Results.partition) == nJobs, ...
-        'Number of defined partitions must be single string or cell array of same length as jobs')    
+        'Number of defined partitions must be single string or cell array of same length as jobs')
     partition = parser.Results.partition;
 end
-    
+
 if ischar(parser.Results.mem)
    mem = repmat({ parser.Results.mem}, [1, nJobs]);
 elseif iscell(parser.Results.mem)
     assert(length(parser.Results.mem) == nJobs, ...
-        'Number of memory must be single string or cell array of same length as jobs')    
+        'Number of memory must be single string or cell array of same length as jobs')
     mem = parser.Results.mem;
 end
 
@@ -207,15 +207,15 @@ outputFiles = cell(1,nJobs);
 logFiles = cell(1,nJobs);
 fprintf('Creating input files in %s\n', parser.Results.slurmWorkingDirectory);
 for iJob = 1:nJobs
-    
+
     baseFile = fullfile(parser.Results.slurmWorkingDirectory, ...
         sprintf('%s_%s_%05u', account, submissionTime, iJob));
-    
+
     jobs(iJob).inputFile = [baseFile '_in.mat'];
     jobs(iJob).outputFile = [baseFile '_out.mat'];
     jobs(iJob).logFile = [baseFile '.log'];
-    
-    
+
+
     inputArgs = cellfun(@(x) x{iJob},  inputArguments, 'UniformOutput', false);
     outputFile = jobs(iJob).outputFile;
     inputArgsSize = whos('inputArgs');
@@ -257,21 +257,21 @@ fexecCmd = 'try fexec(func, inputArgs, outputFile); catch exit; end';
 
 
 for iJob = 1:nJobs
-    
+
     % set job parameters
     jobs(iJob).partition = partition{iJob};
     jobs(iJob).allocCPU = cpu(iJob);
     jobs(iJob).allocMEM = mem{iJob};
-    
+
     % construct MATLAB command
     cmd = '';
     loadCmd = sprintf('load(''%s'');', jobs(iJob).inputFile);
     cmd = [licenseCheckoutCmd, loadCmd, userPathCmd, fexecCmd];
     jobs(iJob).run_cmd(cmd);
     jobs(iJob).deleteFiles = parser.Results.deleteFiles;
-    
+
     pause(0.005)
-    
+
 end
 
 fprintf('Submission of %u jobs took %.0f s\n', nJobs, toc(tSubmission))
@@ -295,11 +295,11 @@ out = cell(1,nJobs);
 fprintf('Retreiving job results\n')
 for iJob = 1:nJobs
     if strcmp(jobs(iJob).state, 'COMPLETED')
-        
+
         % load output files
         tmpOut = load(jobs(iJob).outputFile);
         out{iJob} = tmpOut.out;
-        
+
         if isa(tmpOut.out, 'MException')
             msg = sprintf('A MATLAB error occured in job %u (id %u).\nFull log: <a href="matlab: opentoline(''%s'',1)">%s</a>', ...
                 iJob, jobs(iJob).id, jobs(iJob).logFile, jobs(iJob).logFile);
@@ -307,9 +307,9 @@ for iJob = 1:nJobs
             warning(getReport(tmpOut.out, 'extended', 'hyperlinks', 'on' ) )
             jobs(iJob).deleteFiles = false;
             if parser.Results.stopOnError
-                rethrow(tmpOut.out)                            
+                rethrow(tmpOut.out)
             end
-            
+
         end
     end
 end

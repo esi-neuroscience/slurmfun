@@ -1,7 +1,7 @@
 #!/bin/bash
 
-matlab='/mnt/hpx/opt/matlab-2020a/bin/matlab'
-export HOME=/mnt/hpx/slurm/$SLURM_JOB_ACCOUNT
+matlab='/cs/opt/matlab-2020b/bin/matlab'
+export HOME=/cs/slurm/$SLURM_JOB_ACCOUNT
 
 if [ ! -d "$HOME" ]; then
 	mkdir $HOME
