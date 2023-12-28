@@ -4,6 +4,10 @@ availablePartitions = get_available_partitions();
 
 is_partition = @(x) ismember(x, availablePartitions);
 
+if contains(partition,',')
+    partition = regexp(partition,',','split');
+end
+
 if iscell(partition)
     isValid = all(cellfun(is_partition, partition));
 elseif ischar(partition)
@@ -13,4 +17,3 @@ else
 end
 
 
-    

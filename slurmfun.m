@@ -16,8 +16,18 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     the array determines number of jobs submitted to SLURM.
 %
 % This function has a number of optional arguments for configuration:
-%   'partition'     : name(s) of partition/queue to be submitted to. Default
-%                     is the default SLURM queue.
+%   'partition'     : name(s) of partition/queue to be submitted to.
+%                     Use a string to specifiy single partition (e.g.,
+%                     'partition', '8GBXS').
+%                     Use a cell array of strings to specify a partition
+%                     per job (e.g., 'partition', {'8GBXS', '8GBL'}
+%                     to submit Job #1 into '8GBXS' and Job #2 into '8GBL'
+%                     partitions).
+%                     Use a string with comma-separated partition names
+%                     to specify multiple possible partitions, where the
+%                     one offering earliest initiation will be used
+%                     (e.g, 'partition', '8GBXL,16GBS' submits jobs to
+%                     either '8GBXL' or '16GBS' whichever runs jobs first)
 %   'mem'           : bytes of memory to be used for each cpu as str or
 %                     cell array of str. Unit are K, M or G.
 %                     Default='', i.e. partition default
