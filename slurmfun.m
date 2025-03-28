@@ -119,10 +119,10 @@ parser.addParameter('matlabCmd', fullfile(matlabroot, 'bin', 'matlab'), ...
 
 % SLURM home folder
 account = getenv('USER');
-machine = getevn('HOSTNAME');
+machine = getenv('HOSTNAME');
 submissionTime = datestr(now, 'YYYYmmDD-HHMMss');
 if contains(machine, 'bic-svhpc')
-  slurbasedir = '/mnt/hpc/home';
+  slurmbasedir = '/mnt/hpc/home';
 elseif contains(machine, 'esi-svhpc')
   slurmbasedir = '/cs/slurm';
 else
