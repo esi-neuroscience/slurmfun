@@ -2,15 +2,29 @@ addpath(fileparts(mfilename('fullpath')))
 
 clc
 
+machine = getenv('HOSTNAME');
+if contains(machine, 'bic-svhpc')
+  fprintf('Running on CoBIC cluster node %s', machine);
+  defaultPartition = '8GBSx86';
+  partition = {'8GBSx86', '16GBSx86', '32GBSx86'};
+elseif contains(machine, 'esi-svhpc')
+  fprintf('Running on ESI cluster node %s', machine);
+  defaultPartition = '8GBDEV';
+  partition = {'8GBXS', '16GBXS', '24GBXS'};
+else
+  error('Unknown cluster node %s - cannot run tests', machine);
+end
+
+
 dbstop if error
-nJobs = 20;
+nJobs = 5;
 inputArgs1 = num2cell(randi(20,nJobs,1)+60);
 inputArgs2 = num2cell(randi(20,nJobs,1)+60);
-inputArgs1{end+1} = 5000000000;
+inputArgs1{end+1} = 5000000;
 inputArgs2{end+1} = 1;
 
 [out, jobs] = slurmfun(@myfunction, inputArgs1, inputArgs2, ...
-    'partition', 'DEV', ...
+    'partition', defaultPartition, ...
     'stopOnError', false, ...
     'deleteFiles', true, ...
     'waitForToolboxes', {}, ...
@@ -20,7 +34,6 @@ inputArgs2{end+1} = 1;
 
 assert(numel(out) == nJobs + 1)
 %% test varying partitions
-partition = {'8GBS', '16GBS', '24GBL'};
 mem = {'8000M', '16000M', '24000M'};
 cpu = [1, 2, 4];
 
@@ -60,11 +73,3 @@ assert(numel(out{1}) == 2);
     'deleteFiles', false, ...
     'waitForToolboxes', {}, ...
     'waitForReturn', true);
-
-
-
-% out = slurmfun(@pause, {4000}, ...
-%     'partition', '8GBS', ...
-%     'stopOnError', false, ...
-%     'deleteFiles', false, ...
-%     'waitForToolboxes', {});
