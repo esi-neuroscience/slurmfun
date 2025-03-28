@@ -2,6 +2,7 @@ addpath(fileparts(fileparts(mfilename('fullpath'))))
 
 clc
 
+% prepare defaults based on cluster
 machine = getenv('HOSTNAME');
 if contains(machine, 'bic-svhpc')
   fprintf('Running on CoBIC cluster node %s\n\n', machine);
@@ -15,14 +16,14 @@ else
   error('Unknown cluster node %s - cannot run tests', machine);
 end
 
-
 dbstop if error
+
+%% Start `nJobs` in `defaultPartition` and allocate ~2.3 GB array
 nJobs = 5;
 inputArgs1 = num2cell(randi(20,nJobs,1)+60);
 inputArgs2 = num2cell(randi(20,nJobs,1)+60);
 inputArgs1{end+1} = 5000000;
 inputArgs2{end+1} = 1;
-
 [out, jobs] = slurmfun(@myfunction, inputArgs1, inputArgs2, ...
     'partition', defaultPartition, ...
     'stopOnError', false, ...
@@ -31,16 +32,14 @@ inputArgs2{end+1} = 1;
     'mem', '7500M', ...
     'cpu', 1, ...
     'waitForReturn', true);
-
 assert(numel(out) == nJobs + 1)
+
 %% test varying partitions
 mem = {'7500M', '15500M', '7500'};
 cpu = [1, 1, 4];
-
 nJobs = 3;
 inputArgs1 = num2cell(randi(20,nJobs,1)+60);
 inputArgs2 = num2cell(randi(20,nJobs,1)+60);
-
 [out, jobs] = slurmfun(@myfunction, inputArgs1, inputArgs2, ...
     'partition', partition, ...
     'stopOnError', false, ...
@@ -49,15 +48,18 @@ inputArgs2 = num2cell(randi(20,nJobs,1)+60);
     'mem', mem, ...
     'cpu', cpu, ...
     'waitForReturn', true);
-
+assert(numel(out) == nJobs)
+for i = 1:3
+    assert(size(out{i}, 1) == inputArgs1{i})
+    assert(size(out{i}, 2) == inputArgs2{1})
+end
 
 %% no outputs
-
-% no output
 [out, jobs] = slurmfun(@function_without_output, {'in1'}, {'in2'}, ...
     'stopOnError', false, ...
     'deleteFiles', true, ...    
     'waitForReturn', true);
+assert(strcmp(out{1}, 'no output'))
 
 %% multiple outputs
 [out, jobs] = slurmfun(@function_with_multiple_outputs, {'in1'}, {'in2'}, ...
