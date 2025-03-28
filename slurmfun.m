@@ -38,9 +38,12 @@ function [out, jobs] = slurmfun(func, varargin)
 %   'stopOnError'   : boolean flag for continuing execution after a job
 %                     fails. Default=true.
 %   'slurmWorkingDirectory' : path to working directory where input, output
-%                     and logfiles will be created. Default is
-%                     /cs/slurm/<user>/<user>_<date/, e.g.
-%                     /cs/slurm/schmiedtj/schmiedtj_20170823-125121
+%                     and logfiles will be created. On the ESI HPC cluster
+%                     defaults to /cs/slurm/<user>/<user>_<date>/ (e.g.,
+%                     /cs/slurm/schmiedtj/schmiedtj_20170823-125121), on CoBIC
+%                     defaults to /mnt/hpc/home/<user>/<user>_<date> (e.g.,
+%                     /mnt/hpc/home/fuertingers/fuertingers_20250323-125121),
+%                     otherwise the user's home directory is used.
 %   'deleteFiles'   : boolean flag for deletion of input, output and log
 %                     files after completion of all jobs. Default=true.
 %   'useUserPath'   : boolean flag whether the MATLAB path of the user
@@ -116,9 +119,17 @@ parser.addParameter('matlabCmd', fullfile(matlabroot, 'bin', 'matlab'), ...
 
 % SLURM home folder
 account = getenv('USER');
+machine = getevn('HOSTNAME');
 submissionTime = datestr(now, 'YYYYmmDD-HHMMss');
+if contains(machine, 'bic-svhpc')
+  slurbasedir = '/mnt/hpc/home';
+elseif contains(machine, 'esi-svhpc')
+  slurmbasedir = '/cs/slurm';
+else
+  slurmbasedir = '/home';
+end
 parser.addParameter('slurmWorkingDirectory', ...
-    fullfile('/cs/slurm', account, [account '_' submissionTime]), @isstr);
+    fullfile(slurmbasedir, account, [account '_' submissionTime]), @isstr);
 
 % stop on error
 parser.addParameter('stopOnError', true, @islogical);

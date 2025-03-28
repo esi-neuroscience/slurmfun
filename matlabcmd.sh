@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-matlab='/cs/opt/matlab-2020b/bin/matlab'
-export HOME=/cs/slurm/$SLURM_JOB_ACCOUNT
-
-if [ ! -d "$HOME" ]; then
-	mkdir $HOME
+if [[ "${HOSTNAME}" == esi-svhpc* ]]; then
+    matlab='/cs/opt/matlab-2020b/bin/matlab'
+    export HOME=/cs/slurm/$SLURM_JOB_ACCOUNT
+    if [ ! -d "$HOME" ]; then
+        mkdir $HOME
+    fi
 fi
-
 
 while :; do
     case $1 in
