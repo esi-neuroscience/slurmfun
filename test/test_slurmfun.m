@@ -1,16 +1,16 @@
-addpath(fileparts(mfilename('fullpath')))
+addpath(fileparts(fileparts(mfilename('fullpath'))))
 
 clc
 
 machine = getenv('HOSTNAME');
 if contains(machine, 'bic-svhpc')
-  fprintf('Running on CoBIC cluster node %s', machine);
+  fprintf('Running on CoBIC cluster node %s\n\n', machine);
   defaultPartition = '8GBSx86';
   partition = {'8GBSx86', '16GBSx86', '32GBSx86'};
 elseif contains(machine, 'esi-svhpc')
-  fprintf('Running on ESI cluster node %s', machine);
-  defaultPartition = '8GBDEV';
-  partition = {'8GBXS', '16GBXS', '24GBXS'};
+  fprintf('Running on ESI cluster node %s\n\n', machine);
+  defaultPartition = '8GBXS';
+  partition = {'8GBXS', '16GBXS', '32GBXS'};
 else
   error('Unknown cluster node %s - cannot run tests', machine);
 end
@@ -28,14 +28,14 @@ inputArgs2{end+1} = 1;
     'stopOnError', false, ...
     'deleteFiles', true, ...
     'waitForToolboxes', {}, ...
-    'mem', '8000M', ...
+    'mem', '7500M', ...
     'cpu', 1, ...
     'waitForReturn', true);
 
 assert(numel(out) == nJobs + 1)
 %% test varying partitions
-mem = {'8000M', '16000M', '24000M'};
-cpu = [1, 2, 4];
+mem = {'7500M', '15500M', '7500'};
+cpu = [1, 1, 4];
 
 nJobs = 3;
 inputArgs1 = num2cell(randi(20,nJobs,1)+60);
