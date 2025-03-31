@@ -25,4 +25,4 @@ fprintf('JobID\tPartition\tStarted\tState\n')
 for i = 1:nJobs
     fprintf('%d\t%s\t%s\t%s\n', activeIds(i), partition{i}, started{i}, state{i})
 end
-fprint('\nUse scontrol show job <jobid> to see more information\n')
+fprintf('\nUse scontrol show job <jobid> to see more information\n')
