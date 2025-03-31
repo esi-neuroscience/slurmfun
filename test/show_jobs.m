@@ -1,4 +1,4 @@
-function show_active_jobs(jobs)
+function show_active_jobs(varargin)
 % SHOW_ACTIVE_JOBS - Print summary of active SLURM JOBS
 %
 %       show_active_jobs(jobs)
