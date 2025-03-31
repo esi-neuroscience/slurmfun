@@ -52,7 +52,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     to finish before returning. Default=true. If
 %                     false, the out argument is an ObjectArray of
 %                     MatlabJob elements. Use the wait_for_jobs function to
-%                     wait until completion.
+%                     wait until completion. Use show_active_jobs to display
+%                     information of jobs running in the background.
 %   'waitForToolboxes' : cell array of toolbox names to wait for. Default={}.
 %
 %
@@ -73,7 +74,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 %
 %
-% See also CELLFUN, wait_for_jobs
+% See also CELLFUN, wait_for_jobs, show_active_jobs
 %
 
 if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3')

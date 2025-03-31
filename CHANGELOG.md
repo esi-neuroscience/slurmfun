@@ -1,5 +1,31 @@
-Changelog for `slurmfun`
-=======================
+# Changelog for `slurmfun`
+All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
+
+## [2025.3]
+First major update in a while adds support for the CoBIC HPC cluster and 
+introduces a new convenience function as well as some code housekeeping. 
+
+### NEW
+- Added convenience function `show_jobs` to display status of currently active 
+  jobs (mainly relevant if `slurmfun` was invoked with `waitForReturn` set to
+  `false`)
+- added tests for running `slurmfun` on the CoBIC HPC cluster
+
+### CHANGED
+- 
+
+### REMOVED
+- Removed `account` as input argument to `get_active_jobs`: it has not been used 
+  anywhere in the package; instead a new (optional) input argument has been 
+  introduced: `jobs`, an array of job ids or a `MatlabJob` array as returned by 
+  slurmfun can be used to select which jobs to query. 
+
+### DEPRECATED
+### FIXED
+- Do not assume a `/cs` filesystem exists on all clusters
+- Updated and expanded tests
+
 
 [0.5] - 2020-05-15
 ------------------
