@@ -6,7 +6,7 @@ if isempty(pid)
     pid = feature('getpid');
 end
 account = getenv('USER');
-squeueBase = 'squeue -A %s -h -o "%%A %%T" --name=matlabcmd.sh';
+squeueBase = 'squeue -A %s -h -o "%%A %%T %%P %%S" --name=matlabcmd.sh';
 if nargin > 0
     if isa(jobs, 'MatlabJob')
         jobids = zeros(1, length(jobs), 'uint32');
@@ -43,6 +43,8 @@ if result ~= 0
     warning('squeue query failed: %s', out);
     id = uint32([]);
     state = {};
+    partition = {};
+    started = {};
     return
 end
 
