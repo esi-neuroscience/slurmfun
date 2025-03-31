@@ -104,6 +104,24 @@ end
 assert(contains(out{1}.message, expectedError));
 fprintf('<strong>Passed</strong>\n%s\n', delim)
 
+%% query background jobs
+fprintf('<strong>Test job queries...</strong>\n')
+nJobs = 5;
+inputArgs1 = num2cell(randi(20,nJobs,1)+60);
+inputArgs2 = num2cell(randi(20,nJobs,1)+60);
+jobs = slurmfun(@myfunction, inputArgs1, inputArgs2, ...
+                'partition', defaultPartition, ...
+                'stopOnError', false, ...
+                'deleteFiles', true, ...
+                'waitForToolboxes', {}, ...
+                'waitForReturn', false);
+show_jobs()
+show_jobs(jobs)
+show_jobs(jobs(1))
+show_jobs(jobs(1).id)
+show_jobs([jobs(1).id, jobs(end).id])
+fprintf('<strong>Passed</strong>\n%s\n', delim)
+
 %% end of test session
 testEnd = datetime('now');
 testDur = testEnd - testStart;
