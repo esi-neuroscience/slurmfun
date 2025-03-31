@@ -1,7 +1,7 @@
-function show_active_jobs(varargin)
-% SHOW_ACTIVE_JOBS - Print summary of active SLURM JOBS
+function show_jobs(varargin)
+% SHOW_JOBS - Print summary of active SLURM JOBS
 %
-%       show_active_jobs(jobs)
+%       show_jobs(jobs)
 %
 % INPUT
 % -----
@@ -21,8 +21,8 @@ if nJobs == 0;
 end
 
 fprintf('\nFound %d active jobs:\n\n', nJobs)
-fprintf('JobID\tPartition\tStarted\tState\n')
+fprintf('JobID\t\tPartition\tStarted\t\t\tState\n')
 for i = 1:nJobs
-    fprintf('%d\t%s\t%s\t%s\n', activeIds(i), partition{i}, started{i}, state{i})
+    fprintf('%d\t%s\t\t%s\t%s\n', activeIds(i), partition{i}, started{i}, state{i})
 end
 fprintf('\nUse scontrol show job <jobid> to see more information\n')
