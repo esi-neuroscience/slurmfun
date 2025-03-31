@@ -51,7 +51,7 @@ inputArgs2 = num2cell(randi(20,nJobs,1)+60);
 assert(numel(out) == nJobs)
 for i = 1:3
     assert(size(out{i}, 1) == inputArgs1{i})
-    assert(size(out{i}, 2) == inputArgs2{1})
+    assert(size(out{i}, 2) == inputArgs2{i})
 end
 
 %% no outputs
