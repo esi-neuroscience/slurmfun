@@ -1,15 +1,30 @@
-function [id, state] = get_active_jobs(account)
-% GET_RUNNING_JOBS - Receive job ids of currently running jobs
+function [id, state, partition, started] = get_active_jobs(jobs)
+% GET_RUNNING_JOBS - Receive info of currently running jobs
 %
 persistent pid
 if isempty(pid)
     pid = feature('getpid');
 end
-if nargin == 0
-    account = getenv('USER');
+account = getenv('USER');
+squeueBase = 'squeue -A %s -h -o "%%A %%T" --name=matlabcmd.sh';
+if nargin > 0
+    if isa(jobs, 'MatlabJob')
+        jobids = zeros(1, length(jobs), 'uint32');
+        for i = 1:length(jobs)
+            jobids(i) = jobs(i).id;
+        end
+    elseif isnumeric(jobs)
+        jobids = jobs;
+    else
+        error('Wrong input type for jobs')
+    end
+    joblist = sprintf('%d', jobids(1));
+    for i = 2:length(jobids)
+        joblist = sprintf('%s,%d', joblist, jobids(i));
+    end
+    squeueBase = sprintf('%s --jobs=%s', squeueBase, joblist);
 end
-
-squeueCmd = sprintf('squeue -A %s -h -o "%%A %%T"', account);
+squeueCmd = sprintf(squeueBase, account);
 
 tStart = tic;
 timeout = 300;
@@ -35,7 +50,11 @@ if ~isempty(out)
     out = textscan(out, '%f%s');
     id = uint32(out{1});
     state = out{2};
+    partition = out{3};
+    started = out{4};
 else
     id = uint32([]);
     state = {};
+    partition = {};
+    started = {};
 end
