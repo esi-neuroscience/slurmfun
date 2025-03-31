@@ -7,7 +7,7 @@ function jobs = wait_for_jobs(jobs, stopOnError)
 % -----
 %        jobs : array of job ids or MatlabJob array as returned by slurmfun
 % stopOnError : boolean flag whether to interrupt if a job fails. Default
-%               is true.
+%               is false.
 %   
 % 
 % OUTPUT
