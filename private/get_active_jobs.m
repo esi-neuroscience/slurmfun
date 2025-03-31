@@ -49,7 +49,7 @@ if result ~= 0
 end
 
 if ~isempty(out)
-    out = textscan(out, '%f%s');
+    out = textscan(out, '%f%s%s%s');
     id = uint32(out{1});
     state = out{2};
     partition = out{3};
