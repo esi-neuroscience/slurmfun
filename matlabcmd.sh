@@ -43,6 +43,10 @@ echo "Account: $SLURM_JOB_ACCOUNT"
 echo "Node: $SLURMD_NODENAME"
 echo "Job start time: `date`"
 echo "MATLAB: $matlab"
+if [ -f VERSION ]; then
+    slurmfunVersion=$(cat VERSION)
+    echo echo "slurmfun version: ${slurmfunVersion}"
+fi
 echo "Command: $1"
 echo "---------------------------------------------------"
 echo ""

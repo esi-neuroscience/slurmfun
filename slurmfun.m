@@ -84,7 +84,6 @@ end
 % empty the LD_PRELOAD environment variable
 % vglrun libraries don't have SUID bit, sbatch does. See
 % ihttps://virtualgl.org/vgldoc/2_2/#hd0012
-
 LD_PRELOAD = getenv('LD_PRELOAD');
 if ~isempty(LD_PRELOAD)
     setenv('LD_PRELOAD', '');
@@ -219,7 +218,10 @@ assert(result == 0, ...
     'Could not set write permissions for SLURM working directory (%s)', ...
     parser.Results.slurmWorkingDirectory)
 
-
+%% Show version info
+delim = repmat(['-'], 1, 75);
+slurmfunVersion = fileread('VERSION');
+fprintf('<strong>%s\n\t\t This is slurmfun v. %s\n%s</strong>\n', delim, slurmfunVersion, delim);
 
 %% Create input files
 addpath(pwd)
