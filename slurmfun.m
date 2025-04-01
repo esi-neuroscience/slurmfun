@@ -220,7 +220,7 @@ assert(result == 0, ...
 
 %% Show version info
 delim = repmat(['-'], 1, 75);
-slurmfunVersion = fileread('VERSION');
+slurmfunVersion = strtrim(fileread('VERSION'));
 fprintf('<strong>%s\n\t\t This is slurmfun v. %s\n%s</strong>\n', delim, slurmfunVersion, delim);
 
 %% Create input files

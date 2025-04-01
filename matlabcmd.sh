@@ -22,6 +22,14 @@ while :; do
                 die 'ERROR: "--matlab" requires a non-empty option argument.'
             fi
             ;;
+        -v|--version)       # Takes an option argument; ensure it has been specified.
+            if [ "$2" ]; then
+                version=$2
+                shift
+            else
+                die 'ERROR: "--version" requires a non-empty option argument.'
+            fi
+            ;;
         --)              # End of all options.
             shift
             break
@@ -43,9 +51,8 @@ echo "Account: $SLURM_JOB_ACCOUNT"
 echo "Node: $SLURMD_NODENAME"
 echo "Job start time: `date`"
 echo "MATLAB: $matlab"
-if [ -f VERSION ]; then
-    slurmfunVersion=$(cat VERSION)
-    echo echo "slurmfun version: ${slurmfunVersion}"
+if [ -n ${version+x} ]; then
+    echo "Version of slurmfun: ${version}"
 fi
 echo "Command: $1"
 echo "---------------------------------------------------"
