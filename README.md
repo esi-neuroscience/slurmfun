@@ -6,6 +6,8 @@ SPDX-License-Identifier: CC-BY-NC-SA-1.0
 
 # slurmfun
 
+[![REUSE status](https://api.reuse.software/badge/github.com/esi-neuroscience/slurmfun)](https://api.reuse.software/info/github.com/esi-neuroscience/slurmfun)
+
 MATLAB tools for submitting jobs to the [SLURM workload manager](https://slurm.schedmd.com/overview.html). 
 
 ## Summary 
