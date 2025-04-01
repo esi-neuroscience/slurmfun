@@ -1,3 +1,9 @@
+ <!--
+ Copyright (c) 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+ in Cooperation with Max Planck Society
+ SPDX-License-Identifier: CC-BY-NC-SA-1.0
+ -->
+
 # Changelog for `slurmfun`
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
@@ -18,6 +24,7 @@ introduces a new convenience function as well as some code housekeeping.
   anywhere in the package; instead a new (optional) input argument has been 
   introduced: `jobs`, an array of job ids or a `MatlabJob` array as returned by 
   slurmfun can be used to select which jobs to query. 
+- Removed unused function `get_final_status`
 
 ### FIXED
 - Do not assume a `/cs` filesystem exists on all clusters

@@ -1,3 +1,11 @@
+%
+% Show user's active slurmfun jobs
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function show_jobs(varargin)
 % SHOW_JOBS - Print summary of active SLURM JOBS
 %

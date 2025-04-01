@@ -1,3 +1,11 @@
+%
+% Prototypical test function
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function out = myfunction(in1, in2)
 
 fprintf('Creating %g random numbers\n', in1)

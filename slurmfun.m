@@ -1,3 +1,11 @@
+%
+% Main function
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function [out, jobs] = slurmfun(func, varargin)
 % SLURMFUN - Apply a function to each element of a cell array in parallel
 % using the SLURM queueing system.

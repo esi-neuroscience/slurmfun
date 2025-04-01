@@ -1,3 +1,11 @@
+%
+% Blocking query of SLURM to track submitted job completion
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function jobs = wait_for_jobs(jobs, stopOnError)
 % WAIT_FOR_JOBS - Wait for completion of SLURM JOBS
 % 

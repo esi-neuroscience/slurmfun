@@ -1,3 +1,12 @@
+%
+% Testing script for slurmfun
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
+
 addpath(fileparts(fileparts(mfilename('fullpath'))))
 
 clc

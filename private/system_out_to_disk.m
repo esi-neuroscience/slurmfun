@@ -1,3 +1,11 @@
+%
+% Run Linux system commands via file piping
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function [result, out] = system_out_to_disk(cmd)
 % SYSTEM_OUT_TO_DISK - Execute system command and return result.
 %

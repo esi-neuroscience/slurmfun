@@ -1,3 +1,11 @@
+%
+% Query running jobs for user
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function [id, state, partition, started] = get_active_jobs(jobs)
 % GET_RUNNING_JOBS - Receive info of currently running jobs
 %

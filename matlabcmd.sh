@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+#
+# Helper script for executing MATLAB commands inside sbatch
+#
+# Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+# in Cooperation with Max Planck Society
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
 
 if [[ "${HOSTNAME}" == esi-svhpc* ]]; then
     matlab='/cs/opt/matlab-2020b/bin/matlab'
