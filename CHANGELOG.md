@@ -10,14 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [2025.3]
 First major update in a while adds support for the CoBIC HPC cluster and 
-introduces a new convenience function as well as some code housekeeping. 
+introduces a new convenience function `show_jobs` as well as some code housekeeping. 
 
 ### NEW
 - Added convenience function `show_jobs` to display status of currently active 
   jobs (mainly relevant if `slurmfun` was invoked with `waitForReturn` set to
   `false`)
-- added tests for running `slurmfun` on the CoBIC HPC cluster
-- include version information in MATLAB prompt and generated log files
+- Added CITATION.cff file to provide information for citing `slurmfun`
+- Added tests for running `slurmfun` on the CoBIC HPC cluster
+- Include version information in MATLAB prompt and generated log files
 
 ### CHANGED
 - Switched to date-based versioning
