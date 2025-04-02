@@ -19,6 +19,9 @@ introduces a new convenience function as well as some code housekeeping.
 - added tests for running `slurmfun` on the CoBIC HPC cluster
 - include version information in MATLAB prompt and generated log files
 
+### CHANGED
+- Switched to date-based versioning
+
 ### REMOVED
 - Removed `account` as input argument to `get_active_jobs`: it has not been used 
   anywhere in the package; instead a new (optional) input argument has been 
