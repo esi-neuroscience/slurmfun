@@ -84,7 +84,7 @@ function [out, jobs] = slurmfun(func, varargin)
 % See also CELLFUN, wait_for_jobs, show_jobs
 %
 
-if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3') || ~verLessThan('MATLAB', 'R2024b')
+if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3') || ~verLessThan('MATLAB', '24.1')
     error('MATLAB:slurmfun:MATLAB supported MATLAB versions are 2014a-2023b')
 end
 
