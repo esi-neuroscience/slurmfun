@@ -1,3 +1,11 @@
+%
+% Query SLURM partitions
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function [availablePartitions, defaultPartition] = get_available_partitions()
 % AVAILABLE_PARTITIONS - Retreive partitions avilable in SLURM
 % 

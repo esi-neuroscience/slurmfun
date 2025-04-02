@@ -1,3 +1,11 @@
+%
+% Test function with multiple output arguments
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function [out1, out2] = function_with_multiple_outputs(in1, in2)
 
 

@@ -1,3 +1,11 @@
+%
+% Main function
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function [out, jobs] = slurmfun(func, varargin)
 % SLURMFUN - Apply a function to each element of a cell array in parallel
 % using the SLURM queueing system.
@@ -8,7 +16,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % INPUT
 % -----
-%   functionName    : function name or handle to executed. The function
+%   functionName    : function name or handle to execute. The function
 %                     must only take one input argument and give out one
 %                     output argument. Multiple arguments can be stored in
 %                     cell arrays.
@@ -16,7 +24,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     the array determines number of jobs submitted to SLURM.
 %
 % This function has a number of optional arguments for configuration:
-%   'partition'     : name(s) of partition/queue to be submitted to.
+%
+%   'partition'     : name(s) of partition(s) to submit to.
 %                     Use a string to specifiy single partition (e.g.,
 %                     'partition', '8GBXS').
 %                     Use a cell array of strings to specify a partition
@@ -28,19 +37,22 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     one offering earliest initiation will be used
 %                     (e.g, 'partition', '8GBXL,16GBS' submits jobs to
 %                     either '8GBXL' or '16GBS' whichever runs jobs first)
-%   'mem'           : bytes of memory to be used for each cpu as str or
-%                     cell array of str. Unit are K, M or G.
-%                     Default='', i.e. partition default
+%   'mem'           : memory to be used per cpu core as str or cell array of str.
+%                     Unit is K, M or G.
+%                     Default='', i.e. use partition defaults
 %   'cpu'           : number of cpu cores to be used for each job.
 %                     Default=1
-%   'matlabCmd'     : path to matlab binary to be used. Default is the same
-%                     as the submitting user
+%   'matlabCmd'     : path to MATLAB binary. Default is the same as the submitting
+%                     host.
 %   'stopOnError'   : boolean flag for continuing execution after a job
 %                     fails. Default=true.
 %   'slurmWorkingDirectory' : path to working directory where input, output
-%                     and logfiles will be created. Default is
-%                     /cs/slurm/<user>/<user>_<date/, e.g.
-%                     /cs/slurm/schmiedtj/schmiedtj_20170823-125121
+%                     and logfiles will be created. On the ESI HPC cluster
+%                     defaults to /cs/slurm/<user>/<user>_<date>/ (e.g.,
+%                     /cs/slurm/schmiedtj/schmiedtj_20170823-125121), on CoBIC
+%                     defaults to /mnt/hpc/home/<user>/<user>_<date> (e.g.,
+%                     /mnt/hpc/home/fuertingers/fuertingers_20250323-125121),
+%                     otherwise the user's home directory is used.
 %   'deleteFiles'   : boolean flag for deletion of input, output and log
 %                     files after completion of all jobs. Default=true.
 %   'useUserPath'   : boolean flag whether the MATLAB path of the user
@@ -49,7 +61,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     to finish before returning. Default=true. If
 %                     false, the out argument is an ObjectArray of
 %                     MatlabJob elements. Use the wait_for_jobs function to
-%                     wait until completion.
+%                     wait until completion. Use show_jobs to display
+%                     information of jobs running in the background.
 %   'waitForToolboxes' : cell array of toolbox names to wait for. Default={}.
 %
 %
@@ -60,27 +73,24 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % EXAMPLE
 % -------
-% This example will spawn 50 jobs that pause for 50-70s.
+% This example will spawn 10 jobs that pause for 50-70s.
 %
-% nJobs = 50;
+% nJobs = 10;
 % inputArgs = num2cell(randi(20,nJobs,1)+50);
 % out = slurmfun(@pause, inputArgs, ...
 %     'partition', '8GBS', ...
 %     'stopOnError', false);
 %
-%
-%
-% See also CELLFUN, wait_for_jobs
+% See also CELLFUN, wait_for_jobs, show_jobs
 %
 
-if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3')
-    error('MATLAB:slurmfun:MATLAB versions older than R2014a are not supported')
+if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3') || ~verLessThan('MATLAB', '24.1')
+    error('MATLAB:slurmfun:MATLAB supported MATLAB versions are 2014a-2023b')
 end
 
 % empty the LD_PRELOAD environment variable
 % vglrun libraries don't have SUID bit, sbatch does. See
 % ihttps://virtualgl.org/vgldoc/2_2/#hd0012
-
 LD_PRELOAD = getenv('LD_PRELOAD');
 if ~isempty(LD_PRELOAD)
     setenv('LD_PRELOAD', '');
@@ -116,9 +126,17 @@ parser.addParameter('matlabCmd', fullfile(matlabroot, 'bin', 'matlab'), ...
 
 % SLURM home folder
 account = getenv('USER');
+machine = getenv('HOSTNAME');
 submissionTime = datestr(now, 'YYYYmmDD-HHMMss');
+if contains(machine, 'bic-svhpc')
+  slurmbasedir = '/mnt/hpc/home';
+elseif contains(machine, 'esi-svhpc')
+  slurmbasedir = '/cs/slurm';
+else
+  slurmbasedir = '/home';
+end
 parser.addParameter('slurmWorkingDirectory', ...
-    fullfile('/cs/slurm', account, [account '_' submissionTime]), @isstr);
+    fullfile(slurmbasedir, account, [account '_' submissionTime]), @isstr);
 
 % stop on error
 parser.addParameter('stopOnError', true, @islogical);
@@ -207,7 +225,10 @@ assert(result == 0, ...
     'Could not set write permissions for SLURM working directory (%s)', ...
     parser.Results.slurmWorkingDirectory)
 
-
+%% Show version info
+delim = repmat(['-'], 1, 75);
+slurmfunVersion = strtrim(fileread('VERSION'));
+fprintf('<strong>%s\n\t\t This is slurmfun v. %s\n%s</strong>\n', delim, slurmfunVersion, delim);
 
 %% Create input files
 addpath(pwd)
@@ -295,6 +316,7 @@ end
 %% Wait for jobs
 if ~parser.Results.waitForReturn
     out = jobs;
+    fprintf('Use show_jobs() to monitor job state\n');
     return
 end
 jobs = wait_for_jobs(jobs, parser.Results.stopOnError);

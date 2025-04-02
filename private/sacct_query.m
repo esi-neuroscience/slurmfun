@@ -1,3 +1,11 @@
+%
+% Get info about past jobs from SLURM accounting database
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function jobInfo = sacct_query(jobId)
 % SACCT_QUERY - Query info about job from SLURM accounting database
 

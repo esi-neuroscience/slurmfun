@@ -1,3 +1,11 @@
+%
+% Parse partition specification
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function isValid = validate_partition(partition)
 
 availablePartitions = get_available_partitions();

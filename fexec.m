@@ -1,3 +1,11 @@
+%
+% Interprete string as MATLAB function
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 function out = fexec(func, inputVars, outputFile)
 %
 % input file must contain the variables func, inputVars, outputFile

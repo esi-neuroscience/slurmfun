@@ -1,3 +1,11 @@
+%
+% MatlabJob class for managing MATLAB <-> SLURM job interaction
+%
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
 classdef MatlabJob < handle
     
     properties
@@ -24,6 +32,7 @@ classdef MatlabJob < handle
         userAccount = getenv('USER');
         gid = primary_group();
         matlabCaller = fullfile(fileparts(mfilename('fullpath')), 'matlabcmd.sh');
+        slurmfunVersion = strtrim(fileread('VERSION'));
     end
     
     methods
@@ -62,8 +71,8 @@ classdef MatlabJob < handle
             
             
             % construct sbatch command: partition, log
-            cmd = sprintf('%s -p %s -o %s %s -m "%s" "%s"', ...
-                baseCmd, obj.partition, obj.logFile, obj.matlabCaller, obj.matlabBinary, cmd);
+            cmd = sprintf('%s -p %s -o %s %s -m "%s" -v "%s" "%s"', ...
+                baseCmd, obj.partition, obj.logFile, obj.matlabCaller, obj.matlabBinary, obj.slurmfunVersion, cmd);
             [result, obj.id] = system_out_to_disk(cmd);
             obj.id = uint32(sscanf(obj.id,'%u'));
             assert(result == 0 || ~isempty(obj.id), 'Submission failed: %s\n', obj.id)
