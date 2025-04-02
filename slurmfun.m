@@ -16,7 +16,7 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % INPUT
 % -----
-%   functionName    : function name or handle to executed. The function
+%   functionName    : function name or handle to execute. The function
 %                     must only take one input argument and give out one
 %                     output argument. Multiple arguments can be stored in
 %                     cell arrays.
@@ -24,7 +24,8 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     the array determines number of jobs submitted to SLURM.
 %
 % This function has a number of optional arguments for configuration:
-%   'partition'     : name(s) of partition/queue to be submitted to.
+%
+%   'partition'     : name(s) of partition(s) to submit to.
 %                     Use a string to specifiy single partition (e.g.,
 %                     'partition', '8GBXS').
 %                     Use a cell array of strings to specify a partition
@@ -36,13 +37,13 @@ function [out, jobs] = slurmfun(func, varargin)
 %                     one offering earliest initiation will be used
 %                     (e.g, 'partition', '8GBXL,16GBS' submits jobs to
 %                     either '8GBXL' or '16GBS' whichever runs jobs first)
-%   'mem'           : bytes of memory to be used for each cpu as str or
-%                     cell array of str. Unit are K, M or G.
-%                     Default='', i.e. partition default
+%   'mem'           : memory to be used per cpu core as str or cell array of str.
+%                     Unit is K, M or G.
+%                     Default='', i.e. use partition defaults
 %   'cpu'           : number of cpu cores to be used for each job.
 %                     Default=1
-%   'matlabCmd'     : path to matlab binary to be used. Default is the same
-%                     as the submitting user
+%   'matlabCmd'     : path to MATLAB binary. Default is the same as the submitting
+%                     host.
 %   'stopOnError'   : boolean flag for continuing execution after a job
 %                     fails. Default=true.
 %   'slurmWorkingDirectory' : path to working directory where input, output
@@ -72,15 +73,13 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % EXAMPLE
 % -------
-% This example will spawn 50 jobs that pause for 50-70s.
+% This example will spawn 10 jobs that pause for 50-70s.
 %
-% nJobs = 50;
+% nJobs = 10;
 % inputArgs = num2cell(randi(20,nJobs,1)+50);
 % out = slurmfun(@pause, inputArgs, ...
 %     'partition', '8GBS', ...
 %     'stopOnError', false);
-%
-%
 %
 % See also CELLFUN, wait_for_jobs, show_jobs
 %
