@@ -1,0 +1,25 @@
+authors:
+- affiliation: "Ernst Strüngmann Institute for Neuroscience in Cooperation with Max Planck Society"
+  family-names: Schmiedt
+  given-names: Joscha Tapani
+  orcid: https://orcid.org/0000-0001-6233-1866
+- affiliation: "Ernst Strüngmann Institute for Neuroscience in Cooperation with Max Planck Society"
+  family-names: Stephan
+  given-names: Michael
+- affiliation: "Ernst Strüngmann Institute for Neuroscience in Cooperation with Max Planck Society"
+  family-names: Fuertinger
+  given-names: Stefan
+  orcid: https://orcid.org/0000-0002-8118-036X
+cff-version: 1.1.0
+date-released: '2025-03-31'
+keywords:
+- high-performance computing
+- parallel computing
+- matlab
+- slurm
+license: BSD-3-Clause
+message: If you use this software, please cite it based on metadata found in this
+  file. slurmfun is a set of MATLAB tools for submitting jobs to the SLURM workload manager.
+repository-code: https://github.com/esi-neuroscience/slurmfun
+title: 'slurmfun'
+version: '2025.3'
