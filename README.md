@@ -24,7 +24,7 @@ Up to now `slurmfun` has been used and tested in the cluster environments of the
 and the [Cooperative Brain Imaging Center](https://cobic.de/) comprising
 
 - SLURM 17, 20.02, 20.11.9
-- MATLAB 2014a up to 2024a
+- MATLAB 2014a up to 2023b
 - Debian 8, RHEL 8.1-8.6
 
 The default paths for log files and the SLURM working directory (`'slurmWorkingDirectory'`, `availableToolboxes` in `slurmfun.m`),  need to be adjusted for the specific 
