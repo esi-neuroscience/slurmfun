@@ -109,7 +109,7 @@ parser.addParameter('partition', defaultPartition{1}, ...
     @validate_partition)
 
 % number of CPU Cores per job
-parser.addParameter('cpu', 1, @isnumeric);
+parser.addParameter('cpu', -1, @isnumeric);
 
 % allocated memory of each job
 parser.addParameter('mem', '', ...
@@ -160,10 +160,6 @@ end
 
 
 varargin = varargin(iFirstParameter:end);
-% input arguments
-%parser.addRequired('inputArguments', @iscell);
-% assert(cellfuniscell(inputArguments), 'Input arguments must a cell array')
-
 
 nArgs = length(inputArguments);
 nJobs = length(inputArguments{1});
@@ -184,7 +180,7 @@ else
 end
 
 if ischar(parser.Results.mem)
-   mem = repmat({ parser.Results.mem}, [1, nJobs]);
+    mem = repmat({parser.Results.mem}, [1, nJobs]);
 elseif iscell(parser.Results.mem)
     assert(length(parser.Results.mem) == nJobs, ...
         'Number of memory must be single string or cell array of same length as jobs')
