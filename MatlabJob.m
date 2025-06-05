@@ -15,7 +15,7 @@ classdef MatlabJob < handle
         matlabBinary = fullfile(matlabroot, 'bin', 'matlab')
         deleteFiles = true
         state = 'UNKNOWN'
-        allocCPU = 1
+        allocCPU = -1
         allocMEM = ''
         memoryUsed
         readFromDisk
@@ -57,19 +57,19 @@ classdef MatlabJob < handle
             
             % construct base sbatch command: account, folder, group
             baseCmd = sprintf(...
-                'sbatch -A %s -D %s --parsable ', ...
+                'sbatch -A %s -D %s --parsable -n1 -N1', ...
                 obj.userAccount, folder);
-            
-            % construct sbatch command: partition, log
-            baseCmd = sprintf('%s -n1 -N1 -c %d ', ...
-                baseCmd, obj.allocCPU);
-            
+
+            % add CPU core count if specified
+            if obj.allocCPU > 0
+                baseCmd = sprintf('%s -c %d ', baseCmd, obj.allocCPU);
+            end
+
             % add memory if specified
             if ~isempty(obj.allocMEM)
                 baseCmd = sprintf('%s --mem-per-cpu %s ', baseCmd, obj.allocMEM);
             end
-            
-            
+
             % construct sbatch command: partition, log
             cmd = sprintf('%s -p %s -o %s %s -m "%s" -v "%s" "%s"', ...
                 baseCmd, obj.partition, obj.logFile, obj.matlabCaller, obj.matlabBinary, obj.slurmfunVersion, cmd);

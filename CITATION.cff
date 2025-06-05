@@ -22,4 +22,4 @@ message: If you use this software, please cite it based on metadata found in thi
   file. slurmfun is a set of MATLAB tools for submitting jobs to the SLURM workload manager.
 repository-code: https://github.com/esi-neuroscience/slurmfun
 title: 'slurmfun'
-version: '2025.3'
+version: '2025.6'

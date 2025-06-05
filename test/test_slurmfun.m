@@ -7,9 +7,11 @@
 % SPDX-License-Identifier: BSD-3-Clause
 %
 
-addpath(fileparts(fileparts(mfilename('fullpath'))))
-
+clear all;
+close all;
 clc
+
+addpath(fileparts(fileparts(mfilename('fullpath'))))
 
 delim = repmat(['-'], 1, 80);
 testStart = datetime('now');

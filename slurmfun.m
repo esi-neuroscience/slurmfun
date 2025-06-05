@@ -1,12 +1,4 @@
 %
-% Main function
-%
-% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
-% in Cooperation with Max Planck Society
-%
-% SPDX-License-Identifier: BSD-3-Clause
-%
-function [out, jobs] = slurmfun(func, varargin)
 % SLURMFUN - Apply a function to each element of a cell array in parallel
 % using the SLURM queueing system.
 %
@@ -83,6 +75,12 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % See also CELLFUN, wait_for_jobs, show_jobs
 %
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
+function [out, jobs] = slurmfun(func, varargin)
 
 if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3') || ~verLessThan('MATLAB', '24.1')
     error('MATLAB:slurmfun:MATLAB supported MATLAB versions are 2014a-2023b')
@@ -111,7 +109,7 @@ parser.addParameter('partition', defaultPartition{1}, ...
     @validate_partition)
 
 % number of CPU Cores per job
-parser.addParameter('cpu', 1, @isnumeric);
+parser.addParameter('cpu', -1, @isnumeric);
 
 % allocated memory of each job
 parser.addParameter('mem', '', ...
@@ -162,10 +160,6 @@ end
 
 
 varargin = varargin(iFirstParameter:end);
-% input arguments
-%parser.addRequired('inputArguments', @iscell);
-% assert(cellfuniscell(inputArguments), 'Input arguments must a cell array')
-
 
 nArgs = length(inputArguments);
 nJobs = length(inputArguments{1});
@@ -186,7 +180,7 @@ else
 end
 
 if ischar(parser.Results.mem)
-   mem = repmat({ parser.Results.mem}, [1, nJobs]);
+    mem = repmat({parser.Results.mem}, [1, nJobs]);
 elseif iscell(parser.Results.mem)
     assert(length(parser.Results.mem) == nJobs, ...
         'Number of memory must be single string or cell array of same length as jobs')
