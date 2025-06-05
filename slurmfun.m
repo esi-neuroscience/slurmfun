@@ -1,12 +1,4 @@
 %
-% Main function
-%
-% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
-% in Cooperation with Max Planck Society
-%
-% SPDX-License-Identifier: BSD-3-Clause
-%
-function [out, jobs] = slurmfun(func, varargin)
 % SLURMFUN - Apply a function to each element of a cell array in parallel
 % using the SLURM queueing system.
 %
@@ -83,6 +75,12 @@ function [out, jobs] = slurmfun(func, varargin)
 %
 % See also CELLFUN, wait_for_jobs, show_jobs
 %
+% Copyright © 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
+% in Cooperation with Max Planck Society
+%
+% SPDX-License-Identifier: BSD-3-Clause
+%
+function [out, jobs] = slurmfun(func, varargin)
 
 if verLessThan('matlab', 'R2014a') || verLessThan('MATLAB', '8.3') || ~verLessThan('MATLAB', '24.1')
     error('MATLAB:slurmfun:MATLAB supported MATLAB versions are 2014a-2023b')
