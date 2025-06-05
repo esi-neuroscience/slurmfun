@@ -8,6 +8,16 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
+## [2025.6]
+Performance improvements and bugfixes 
+
+### CHANGED
+- By default `slurmfun` does not use 1 CPU core by default but instead lets 
+  the SLURM controller pick any preset values
+  
+### FIXED
+- Restore correct display of help text (cf. #7)
+
 ## [2025.3]
 First major update in a while adds support for the CoBIC HPC cluster and 
 introduces a new convenience function `show_jobs` as well as some code housekeeping. 
