@@ -16,7 +16,7 @@ ypos = 0.3554;
 
 steps = 1000;
 span = 2;
-maxcount = 1000;
+maxcount = 50;
 zoom = 0.98;
 
 cfg = {};
@@ -36,8 +36,20 @@ end
 
 
 %% Parallel computation
+% Prepare default partition based on used cluster
+machine = getenv('HOSTNAME');
+if contains(machine, 'bic-svhpc')
+    fprintf('Running on CoBIC cluster node %s\n\n', machine);
+    defaultPartition = '8GBSx86';
+elseif contains(machine, 'esi-svhpc')
+    fprintf('Running on ESI cluster node %s\n\n', machine);
+    defaultPartition = '8GBXS';
+else
+    error('Unknown cluster node %s - please set `partition` below manually', machine);
+end
+
 tStart = tic;
-Z = slurmfun(@calcfrac, cfg, 'partition','8GBS');
+Z = slurmfun(@calcfrac, cfg, 'partition', defaultPartition);
 tParallel = toc;
 
 %% animate
