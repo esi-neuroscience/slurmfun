@@ -1,6 +1,7 @@
  <!--
  Copyright (c) 2025 Ernst Strüngmann Institute (ESI) for Neuroscience
  in Cooperation with Max Planck Society
+ Copyright (c) 2026 Ernst Strüngmann Institute (ESI) of the Max Planck Society
  SPDX-License-Identifier: CC-BY-NC-SA-1.0
  -->
 
@@ -8,12 +9,17 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
-### NEW
+## [2026.2]
+Bugfixes and copyright update. 
+
 ### CHANGED
-### REMOVED
-### DEPRECATED
+- Updated copyright notice with new institute name 
+
 ### FIXED
+- Ensure AVX-capabilities are not "inherited" from caller: if host invoking 
+  `slurmfun` supports "higher" AVX levels (i.e., AVX2) but worker node running 
+  the job does not the code crashed with very cryptic errors. This has been 
+  fixed (Thanks to B. Rummell)
 
 ## [2025.11]
 Bugfix release. 
