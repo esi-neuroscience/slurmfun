@@ -66,4 +66,7 @@ echo "Command: $1"
 echo "---------------------------------------------------"
 echo ""
 
+# Prevent running AVX2 code on older Intel CPUs
+lscpu | grep -q avx2 || export MKL_ENABLE_INSTRUCTIONS=AVX1
+
 srun $matlab -nodisplay -nosplash -r  "try $1; exit; catch exit; end"
