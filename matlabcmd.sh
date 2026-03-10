@@ -63,6 +63,7 @@ echo "MATLAB: $matlab"
 if [ -n ${version+x} ]; then
     echo "Version of slurmfun: ${version}"
 fi
+echo "Environment: $(env)"
 echo "Command: $1"
 echo "---------------------------------------------------"
 echo ""
